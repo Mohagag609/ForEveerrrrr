@@ -1,7 +1,10 @@
+'use client'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { GradientHero } from "@/components/ui/gradient-hero"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { 
   Building2, 
   Users, 
@@ -16,6 +19,7 @@ import {
 } from "lucide-react"
 
 export default function HomePage() {
+  const router = useRouter()
   const features = [
     {
       title: "إدارة العملاء والموردين",
@@ -74,7 +78,7 @@ export default function HomePage() {
         title="نظام ERP العقاري المتكامل"
         subtitle="نظام محاسبي وإداري شامل لإدارة شركات المقاولات والعقارات"
         ctaText="لوحة التحكم"
-        onCtaClick={() => window.location.href = '/dashboard'}
+        onCtaClick={() => router.push('/dashboard')}
         gradient="ocean"
       />
 
