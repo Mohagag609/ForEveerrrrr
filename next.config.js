@@ -30,8 +30,19 @@ const nextConfig = {
       'lucide-react',
       'framer-motion',
       '@tanstack/react-table',
-      '@tanstack/react-query'
+      '@tanstack/react-query',
+      'recharts',
+      'date-fns',
+      'zod'
     ],
+    // Enable server actions
+    serverActions: {
+      bodySizeLimit: '2mb',
+    },
+    // Turbopack for development (faster builds)
+    turbo: {
+      resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
+    },
   },
   
   // Production optimizations
@@ -43,6 +54,20 @@ const nextConfig = {
       },
     },
   }),
+  
+  // TypeScript and ESLint improvements
+  typescript: {
+    // !! WARN !!
+    // Dangerously allow production builds to successfully complete even if
+    // your project has type errors.
+    ignoreBuildErrors: false,
+  },
+  
+  eslint: {
+    // Warning: This allows production builds to successfully complete even if
+    // your project has ESLint errors.
+    ignoreDuringBuilds: false,
+  },
 }
 
 module.exports = nextConfig
