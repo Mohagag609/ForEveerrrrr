@@ -21,8 +21,6 @@ const nextConfig = {
   
   // Experimental features for better performance
   experimental: {
-    // Enable partial prerendering
-    ppr: true,
     // Optimize package imports
     optimizePackageImports: [
       '@radix-ui/react-dialog',
