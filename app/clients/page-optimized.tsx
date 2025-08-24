@@ -232,7 +232,7 @@ export default function ClientsPageOptimized() {
               variant="ghost"
               size="sm"
               onClick={() => handleDelete(client.id)}
-              disabled={deleteMutation.isLoading}
+              disabled={deleteMutation.isPending}
             >
               حذف
             </Button>
@@ -398,9 +398,9 @@ export default function ClientsPageOptimized() {
               </Button>
               <Button 
                 type="submit" 
-                disabled={createMutation.isLoading || updateMutation.isLoading}
+                disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isLoading || updateMutation.isLoading ? (
+                {createMutation.isPending || updateMutation.isPending ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
                     جاري الحفظ...
