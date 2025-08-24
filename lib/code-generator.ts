@@ -113,9 +113,10 @@ export const codeGenerators = {
       const lastAccount = await prisma.account.findMany({
         where: {
           parentId: null,
-          code: {
-            length: 1
-          }
+          AND: [
+            { code: { gte: '1' } },
+            { code: { lte: '9' } }
+          ]
         },
         orderBy: {
           code: 'desc'
