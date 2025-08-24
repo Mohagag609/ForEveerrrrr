@@ -28,7 +28,6 @@ interface ListPageTemplateProps<T> {
   onAdd?: () => void
   onExport?: () => void
   onImport?: () => void
-  searchPlaceholder?: string
   emptyStateProps?: {
     title: string
     description: string
@@ -47,7 +46,6 @@ export function ListPageTemplate<T>({
   onAdd,
   onExport,
   onImport,
-  searchPlaceholder = "بحث...",
   emptyStateProps = {
     title: "لا توجد بيانات",
     description: "ابدأ بإضافة عنصر جديد"
@@ -139,7 +137,6 @@ export function ListPageTemplate<T>({
             <DataTable
               columns={columns}
               data={data}
-              searchPlaceholder={searchPlaceholder}
             />
           )}
         </CardContent>
