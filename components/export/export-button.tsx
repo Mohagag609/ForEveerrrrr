@@ -141,7 +141,9 @@ export function ExportButton({
       }
       
       // Add autofilter
-      ws['!autofilter'] = { ref: ws['!ref'] }
+      if (ws['!ref']) {
+        ws['!autofilter'] = { ref: ws['!ref'] }
+      }
       
       // Freeze header row
       ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomRight', state: 'frozen' }
