@@ -36,11 +36,13 @@ export function ExportButton({
       // Lazy load xlsx library
       const XLSX = await import('xlsx')
       
-      // Prepare data for export
+      // Prepare data for export with RTL support
       const exportData = data.map(item => {
         if (columns) {
           const row: any = {}
-          columns.forEach(col => {
+          // Reverse columns for RTL
+          const reversedColumns = [...columns].reverse()
+          reversedColumns.forEach(col => {
             row[col.label] = item[col.key] || ''
           })
           return row
@@ -48,23 +50,111 @@ export function ExportButton({
         return item
       })
 
-      // Create workbook
+      // Create workbook with RTL support
       const wb = XLSX.utils.book_new()
-      const ws = XLSX.utils.json_to_sheet(exportData)
+      wb.Props = {
+        Title: title,
+        Subject: "تقرير",
+        Author: "نظام ERP",
+        CreatedDate: new Date()
+      }
       
-      // Auto-size columns
+      const ws = XLSX.utils.json_to_sheet(exportData, {
+        header: columns ? columns.map(c => c.label).reverse() : undefined
+      })
+      
+      // Apply RTL and styling
+      ws['!dir'] = 'rtl'
+      
+      // Auto-size columns with better calculation
       const maxWidths: any = {}
+      const headers = columns ? columns.map(c => c.label).reverse() : Object.keys(exportData[0] || {})
+      
+      // Calculate column widths
+      headers.forEach(header => {
+        maxWidths[header] = header.length * 1.5 + 5
+      })
+      
       exportData.forEach(row => {
         Object.keys(row).forEach(key => {
           const value = String(row[key] || '')
-          maxWidths[key] = Math.max(maxWidths[key] || 10, value.length + 2)
+          const width = value.length * 1.2 + 5
+          maxWidths[key] = Math.max(maxWidths[key] || 10, width, 15)
         })
       })
       
-      ws['!cols'] = Object.keys(maxWidths).map(key => ({ wch: maxWidths[key] }))
+      ws['!cols'] = headers.map(key => ({ 
+        wch: Math.min(maxWidths[key], 50) // Max width 50
+      }))
+      
+      // Apply styles to headers
+      const range = XLSX.utils.decode_range(ws['!ref'] || 'A1')
+      
+      // Style headers
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const address = XLSX.utils.encode_cell({ r: 0, c: C })
+        if (!ws[address]) continue
+        
+        ws[address].s = {
+          fill: { fgColor: { rgb: "4472C4" } },
+          font: { 
+            bold: true, 
+            color: { rgb: "FFFFFF" },
+            sz: 12
+          },
+          alignment: { 
+            horizontal: "center",
+            vertical: "center",
+            wrapText: true
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } }
+          }
+        }
+      }
+      
+      // Apply alternating row colors and borders
+      for (let R = 1; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+          const address = XLSX.utils.encode_cell({ r: R, c: C })
+          if (!ws[address]) continue
+          
+          ws[address].s = {
+            fill: { 
+              fgColor: { rgb: R % 2 === 0 ? "F2F2F2" : "FFFFFF" } 
+            },
+            alignment: { 
+              horizontal: "right",
+              vertical: "center"
+            },
+            border: {
+              top: { style: "thin", color: { rgb: "D0D0D0" } },
+              bottom: { style: "thin", color: { rgb: "D0D0D0" } },
+              left: { style: "thin", color: { rgb: "D0D0D0" } },
+              right: { style: "thin", color: { rgb: "D0D0D0" } }
+            }
+          }
+        }
+      }
+      
+      // Add autofilter
+      ws['!autofilter'] = { ref: ws['!ref'] }
+      
+      // Freeze header row
+      ws['!freeze'] = { xSplit: 0, ySplit: 1, topLeftCell: 'A2', activePane: 'bottomRight', state: 'frozen' }
       
       XLSX.utils.book_append_sheet(wb, ws, 'البيانات')
-      XLSX.writeFile(wb, `${filename}.xlsx`)
+      
+      // Write file with RTL name
+      const date = new Date().toLocaleDateString('ar-EG').replace(/\//g, '-')
+      XLSX.writeFile(wb, `${filename}_${date}.xlsx`, { 
+        bookType: 'xlsx',
+        type: 'binary',
+        cellStyles: true
+      })
       
       toast({
         title: "تم التصدير بنجاح",

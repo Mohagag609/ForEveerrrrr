@@ -37,6 +37,7 @@ import { motion } from "framer-motion"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
 import { useErrorToast } from "@/lib/hooks/useErrorToast"
 import { ExportButton } from "@/components/export/export-button"
+import { ImportButton } from "@/components/import/import-button"
 import type { ColumnDef } from "@tanstack/react-table"
 
 interface Client {
@@ -62,7 +63,6 @@ export default function ClientsPage() {
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
-    code: '',
     name: '',
     phone: '',
     email: '',
@@ -134,7 +134,6 @@ export default function ClientsPage() {
   const handleEdit = (client: Client) => {
     setEditingClient(client)
     setFormData({
-      code: client.code,
       name: client.name,
       phone: client.phone || '',
       email: client.email || '',
@@ -142,6 +141,29 @@ export default function ClientsPage() {
       note: client.note || ''
     })
     setShowForm(true)
+  }
+
+  const handleImport = async (data: any[]) => {
+    try {
+      // Process each row
+      for (const row of data) {
+        if (!row.name) continue // Skip empty rows
+        
+        await fetch('/api/clients', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(row),
+        })
+      }
+      
+      // Refresh data
+      await fetchClients()
+    } catch (error) {
+      console.error('Error importing clients:', error)
+      throw error
+    }
   }
 
   const handleDelete = async (id: string) => {
@@ -285,18 +307,31 @@ export default function ClientsPage() {
           <h1 className="text-3xl font-bold tracking-tight">العملاء</h1>
           <p className="text-muted-foreground">إدارة بيانات العملاء</p>
         </div>
-        <ExportButton
-          data={clients}
-          filename="clients"
-          title="قائمة العملاء"
-          columns={[
-            { key: 'code', label: 'كود العميل' },
-            { key: 'name', label: 'اسم العميل' },
-            { key: 'phone', label: 'رقم الهاتف' },
-            { key: 'email', label: 'البريد الإلكتروني' },
-            { key: 'address', label: 'العنوان' }
-          ]}
-        />
+        <div className="flex gap-2">
+          <ImportButton
+            onImport={handleImport}
+            columns={[
+              { key: 'name', label: 'اسم العميل', required: true },
+              { key: 'phone', label: 'رقم الهاتف' },
+              { key: 'email', label: 'البريد الإلكتروني' },
+              { key: 'address', label: 'العنوان' },
+              { key: 'note', label: 'ملاحظات' }
+            ]}
+            templateName="clients"
+          />
+          <ExportButton
+            data={clients}
+            filename="clients"
+            title="قائمة العملاء"
+            columns={[
+              { key: 'code', label: 'كود العميل' },
+              { key: 'name', label: 'اسم العميل' },
+              { key: 'phone', label: 'رقم الهاتف' },
+              { key: 'email', label: 'البريد الإلكتروني' },
+              { key: 'address', label: 'العنوان' }
+            ]}
+          />
+        </div>
       </div>
 
       {/* Data Table */}
@@ -309,7 +344,6 @@ export default function ClientsPage() {
             onAdd={() => {
               setEditingClient(null)
               setFormData({
-                code: '',
                 name: '',
                 phone: '',
                 email: '',
@@ -338,16 +372,6 @@ export default function ClientsPage() {
 
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="code">كود العميل *</Label>
-                <Input
-                  id="code"
-                  value={formData.code}
-                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                  required
-                />
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="name">اسم العميل *</Label>
                 <Input
