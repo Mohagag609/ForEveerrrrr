@@ -1,355 +1,390 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { MotionSection } from "@/components/ui/motion-section"
 import { 
   Building2, 
   Users, 
   FileText, 
   DollarSign, 
-  TrendingUp, 
-  AlertCircle,
+  TrendingUp,
+  TrendingDown,
   Calendar,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
   Home,
-  Command
+  Briefcase,
+  Receipt,
+  Wallet
 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { motion } from "framer-motion"
-import { GradientHero } from "@/components/ui/gradient-hero"
-import { KpiCard } from "@/components/ui/kpi-card"
-import { MotionSection } from "@/components/ui/motion-section"
-import { 
-  Breadcrumb, 
-  BreadcrumbItem, 
-  BreadcrumbLink, 
-  BreadcrumbList, 
-  BreadcrumbPage, 
-  BreadcrumbSeparator 
-} from "@/components/ui/breadcrumb"
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Area,
+  AreaChart
+} from 'recharts'
+import { format, subDays, startOfMonth, endOfMonth } from 'date-fns'
+import { ar } from 'date-fns/locale'
 
-interface DashboardStats {
-  totalClients: number
-  totalProjects: number
-  totalUnits: number
-  availableUnits: number
-  totalContracts: number
-  activeContracts: number
-  overdueInstallments: number
-  pendingInstallments: number
-  totalRevenue: number
-  totalExpenses: number
-  monthlyRevenue: number
-  monthlyExpenses: number
+// Mock data - سيتم استبدالها بـ API calls
+const revenueData = Array.from({ length: 30 }, (_, i) => ({
+  date: format(subDays(new Date(), 29 - i), 'dd/MM', { locale: ar }),
+  revenue: Math.floor(Math.random() * 50000) + 20000,
+  expenses: Math.floor(Math.random() * 30000) + 10000,
+}))
+
+const projectsData = [
+  { name: 'مكتمل', value: 12, color: '#10b981' },
+  { name: 'قيد التنفيذ', value: 8, color: '#3b82f6' },
+  { name: 'متأخر', value: 3, color: '#ef4444' },
+  { name: 'معلق', value: 2, color: '#f59e0b' },
+]
+
+const installmentsData = [
+  { month: 'يناير', paid: 450000, pending: 120000 },
+  { month: 'فبراير', paid: 520000, pending: 85000 },
+  { month: 'مارس', paid: 380000, pending: 150000 },
+  { month: 'أبريل', paid: 620000, pending: 95000 },
+  { month: 'مايو', paid: 550000, pending: 110000 },
+  { month: 'يونيو', paid: 480000, pending: 130000 },
+]
+
+interface KPICardProps {
+  title: string
+  value: string | number
+  change?: number
+  icon: React.ReactNode
+  trend?: 'up' | 'down'
+  prefix?: string
+  suffix?: string
+}
+
+function KPICard({ title, value, change, icon, trend, prefix, suffix }: KPICardProps) {
+  return (
+    <Card className="hover:shadow-lg transition-shadow">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <div className="text-muted-foreground">{icon}</div>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
+          {prefix}{typeof value === 'number' ? value.toLocaleString('ar-SA') : value}{suffix}
+        </div>
+        {change !== undefined && (
+          <div className={`flex items-center text-xs mt-2 ${
+            trend === 'up' ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {trend === 'up' ? <TrendingUp className="h-3 w-3 ml-1" /> : <TrendingDown className="h-3 w-3 ml-1" />}
+            <span>{Math.abs(change)}%</span>
+            <span className="text-muted-foreground mr-1">عن الشهر السابق</span>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
 }
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalClients: 0,
-    totalProjects: 0,
-    totalUnits: 0,
-    availableUnits: 0,
-    totalContracts: 0,
-    activeContracts: 0,
-    overdueInstallments: 0,
-    pendingInstallments: 0,
-    totalRevenue: 0,
-    totalExpenses: 0,
-    monthlyRevenue: 0,
-    monthlyExpenses: 0,
-  })
+  const [timeRange, setTimeRange] = useState('month')
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchDashboardStats()
+    // Simulate data loading
+    setTimeout(() => setLoading(false), 1000)
   }, [])
-
-  const fetchDashboardStats = async () => {
-    try {
-      // Fetch all stats in parallel
-      const [
-        clientsRes,
-        projectsRes,
-        unitsRes,
-        contractsRes,
-        installmentsRes,
-      ] = await Promise.all([
-        fetch('/api/clients'),
-        fetch('/api/projects'),
-        fetch('/api/units'),
-        fetch('/api/contracts'),
-        fetch('/api/installments'),
-      ])
-
-      if (clientsRes.ok && projectsRes.ok && unitsRes.ok && contractsRes.ok && installmentsRes.ok) {
-        const clients = await clientsRes.json()
-        const projects = await projectsRes.json()
-        const units = await unitsRes.json()
-        const contracts = await contractsRes.json()
-        const installments = await installmentsRes.json()
-
-        const now = new Date()
-        const overdueInstallments = installments.filter((i: any) => 
-          i.status === 'pending' && new Date(i.dueDate) < now
-        )
-        const pendingInstallments = installments.filter((i: any) => 
-          i.status === 'pending'
-        )
-
-        setStats({
-          totalClients: clients.length,
-          totalProjects: projects.length,
-          totalUnits: units.length,
-          availableUnits: units.filter((u: any) => u.status === 'available').length,
-          totalContracts: contracts.length,
-          activeContracts: contracts.filter((c: any) => c.status === 'active').length,
-          overdueInstallments: overdueInstallments.length,
-          pendingInstallments: pendingInstallments.length,
-          totalRevenue: 0, // Will be calculated from actual data
-          totalExpenses: 0, // Will be calculated from actual data
-          monthlyRevenue: 0, // Will be calculated from actual data
-          monthlyExpenses: 0, // Will be calculated from actual data
-        })
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const statCards = [
-    {
-      title: "العملاء",
-      value: stats.totalClients,
-      icon: Users,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
-      description: "إجمالي العملاء المسجلين"
-    },
-    {
-      title: "المشاريع",
-      value: stats.totalProjects,
-      icon: Building2,
-      color: "text-green-600",
-      bgColor: "bg-green-50",
-      description: "المشاريع النشطة والمكتملة"
-    },
-    {
-      title: "الوحدات",
-      value: `${stats.availableUnits}/${stats.totalUnits}`,
-      icon: Home,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-      description: "الوحدات المتاحة من الإجمالي"
-    },
-    {
-      title: "العقود النشطة",
-      value: `${stats.activeContracts}/${stats.totalContracts}`,
-      icon: FileText,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-50",
-      description: "العقود النشطة من الإجمالي"
-    },
-    {
-      title: "أقساط متأخرة",
-      value: stats.overdueInstallments,
-      icon: AlertCircle,
-      color: "text-red-600",
-      bgColor: "bg-red-50",
-      description: "أقساط تجاوزت تاريخ الاستحقاق"
-    },
-    {
-      title: "أقساط مستحقة",
-      value: stats.pendingInstallments,
-      icon: Calendar,
-      color: "text-orange-600",
-      bgColor: "bg-orange-50",
-      description: "أقساط في انتظار السداد"
-    },
-  ]
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 }
-  }
 
   if (loading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="mt-2 text-sm text-muted-foreground">جاري تحميل البيانات...</p>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     )
   }
 
-  // Calculate percentage changes (mock data for demo)
-  const calculateChange = (current: number, previous: number = 0) => {
-    if (previous === 0) return 0
-    return Math.round(((current - previous) / previous) * 100)
-  }
-
-  // Open Command Palette
-  const openCommandPalette = () => {
-    const event = new KeyboardEvent('keydown', {
-      key: 'k',
-      metaKey: true,
-      ctrlKey: true
-    })
-    document.dispatchEvent(event)
-  }
-
   return (
-    <MotionSection className="space-y-8">
-      {/* Breadcrumb */}
-      <Breadcrumb>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink href="/">الرئيسية</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>لوحة التحكم</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
-      {/* Hero Section */}
-      <GradientHero
-        title="مرحباً بك في نظام ERP العقاري"
-        subtitle="إدارة متكاملة لمشاريعك العقارية وعقاراتك بكفاءة عالية"
-        ctaText="البحث السريع"
-        onCtaClick={openCommandPalette}
-        gradient="ocean"
-      />
+    <MotionSection className="space-y-6 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">لوحة التحكم</h1>
+          <p className="text-muted-foreground">نظرة عامة على أداء النظام</p>
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant={timeRange === 'week' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTimeRange('week')}
+          >
+            أسبوع
+          </Button>
+          <Button
+            variant={timeRange === 'month' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTimeRange('month')}
+          >
+            شهر
+          </Button>
+          <Button
+            variant={timeRange === 'year' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTimeRange('year')}
+          >
+            سنة
+          </Button>
+        </div>
+      </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          title="العملاء"
-          value={stats.totalClients}
-          icon={Users}
-          change={15}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KPICard
+          title="إجمالي الإيرادات"
+          value={2450000}
+          change={12.5}
           trend="up"
-          gradient
+          icon={<DollarSign className="h-4 w-4" />}
+          suffix=" ر.س"
         />
-        <KpiCard
-          title="المشاريع النشطة"
-          value={stats.totalProjects}
-          icon={Building2}
+        <KPICard
+          title="العقود النشطة"
+          value={48}
           change={8}
           trend="up"
+          icon={<FileText className="h-4 w-4" />}
         />
-        <KpiCard
-          title="الوحدات المتاحة"
-          value={`${stats.availableUnits}/${stats.totalUnits}`}
-          icon={Home}
-          change={-5}
+        <KPICard
+          title="العملاء"
+          value={156}
+          change={-2.3}
           trend="down"
+          icon={<Users className="h-4 w-4" />}
         />
-        <KpiCard
-          title="العقود النشطة"
-          value={stats.activeContracts}
-          icon={FileText}
-          change={12}
+        <KPICard
+          title="نسبة التحصيل"
+          value="87.5"
+          change={5.2}
           trend="up"
-          gradient
+          icon={<CheckCircle className="h-4 w-4" />}
+          suffix="%"
         />
       </div>
 
-      {/* Revenue Chart */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.6 }}
-      >
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Chart */}
         <Card>
           <CardHeader>
             <CardTitle>الإيرادات والمصروفات</CardTitle>
-            <CardDescription>ملخص الحركة المالية للشهر الحالي</CardDescription>
+            <CardDescription>آخر 30 يوم</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">الإيرادات</span>
-                  <span className="text-lg font-bold text-green-600">
-                    {new Intl.NumberFormat('ar-EG', {
-                      style: 'currency',
-                      currency: 'EGP'
-                    }).format(stats.monthlyRevenue)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">المصروفات</span>
-                  <span className="text-lg font-bold text-red-600">
-                    {new Intl.NumberFormat('ar-EG', {
-                      style: 'currency',
-                      currency: 'EGP'
-                    }).format(stats.monthlyExpenses)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between border-t pt-2">
-                  <span className="text-sm font-medium">صافي الربح</span>
-                  <span className="text-lg font-bold">
-                    {new Intl.NumberFormat('ar-EG', {
-                      style: 'currency',
-                      currency: 'EGP'
-                    }).format(stats.monthlyRevenue - stats.monthlyExpenses)}
-                  </span>
-                </div>
-              </div>
-              <div className="flex items-center justify-center">
-                <TrendingUp className="h-24 w-24 text-muted-foreground/20" />
-              </div>
-            </div>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+                <YAxis />
+                <Tooltip 
+                  formatter={(value: number) => `${value.toLocaleString('ar-SA')} ر.س`}
+                  labelStyle={{ direction: 'rtl' }}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#10b981" 
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)"
+                  name="الإيرادات"
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="expenses" 
+                  stroke="#ef4444" 
+                  fillOpacity={1} 
+                  fill="url(#colorExpenses)"
+                  name="المصروفات"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
-      </motion.div>
 
-      {/* Quick Actions */}
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.8 }}
-      >
+        {/* Projects Status */}
         <Card>
           <CardHeader>
-            <CardTitle>إجراءات سريعة</CardTitle>
-            <CardDescription>اختصارات للعمليات الشائعة</CardDescription>
+            <CardTitle>حالة المشاريع</CardTitle>
+            <CardDescription>توزيع المشاريع حسب الحالة</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-2 md:grid-cols-4">
-              <a href="/contracts/new" className="rounded-lg border p-4 text-center hover:bg-accent">
-                <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm font-medium">عقد جديد</p>
-              </a>
-              <a href="/clients/new" className="rounded-lg border p-4 text-center hover:bg-accent">
-                <Users className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm font-medium">عميل جديد</p>
-              </a>
-              <a href="/units/new" className="rounded-lg border p-4 text-center hover:bg-accent">
-                <Home className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm font-medium">وحدة جديدة</p>
-              </a>
-              <a href="/accounting/vouchers/new" className="rounded-lg border p-4 text-center hover:bg-accent">
-                <DollarSign className="mx-auto h-8 w-8 text-muted-foreground" />
-                <p className="mt-2 text-sm font-medium">سند قبض</p>
-              </a>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={projectsData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {projectsData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="grid grid-cols-2 gap-2 mt-4">
+              {projectsData.map((item) => (
+                <div key={item.name} className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: item.color }} />
+                  <span className="text-sm">{item.name}: {item.value}</span>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
+
+      {/* Installments Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>تحصيل الأقساط</CardTitle>
+          <CardDescription>مقارنة الأقساط المحصلة والمعلقة</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={installmentsData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip 
+                formatter={(value: number) => `${value.toLocaleString('ar-SA')} ر.س`}
+                labelStyle={{ direction: 'rtl' }}
+              />
+              <Legend />
+              <Bar dataKey="paid" fill="#10b981" name="محصل" />
+              <Bar dataKey="pending" fill="#f59e0b" name="معلق" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions & Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Quick Actions */}
+        <Card className="lg:col-span-1">
+          <CardHeader>
+            <CardTitle>إجراءات سريعة</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button variant="outline" className="w-full justify-start">
+              <FileText className="h-4 w-4 ml-2" />
+              إضافة عقد جديد
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Users className="h-4 w-4 ml-2" />
+              تسجيل عميل جديد
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Receipt className="h-4 w-4 ml-2" />
+              إنشاء فاتورة
+            </Button>
+            <Button variant="outline" className="w-full justify-start">
+              <Wallet className="h-4 w-4 ml-2" />
+              تسجيل دفعة
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Recent Alerts */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle>تنبيهات مهمة</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">5 أقساط متأخرة</p>
+                <p className="text-xs text-muted-foreground">إجمالي 125,000 ر.س</p>
+              </div>
+              <Button size="sm" variant="outline">عرض</Button>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-yellow-50 dark:bg-yellow-950/20 rounded-lg">
+              <Clock className="h-5 w-5 text-yellow-600" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">3 عقود تنتهي هذا الشهر</p>
+                <p className="text-xs text-muted-foreground">تحتاج للتجديد</p>
+              </div>
+              <Button size="sm" variant="outline">عرض</Button>
+            </div>
+            <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+              <Calendar className="h-5 w-5 text-blue-600" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">اجتماع مع العميل أحمد محمد</p>
+                <p className="text-xs text-muted-foreground">اليوم في 3:00 م</p>
+              </div>
+              <Button size="sm" variant="outline">تفاصيل</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Activity Timeline */}
+      <Card>
+        <CardHeader>
+          <CardTitle>آخر الأنشطة</CardTitle>
+          <CardDescription>سجل النشاطات الأخيرة في النظام</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[
+              { icon: <FileText className="h-4 w-4" />, title: 'عقد جديد #1234', desc: 'تم إنشاء عقد جديد للعميل محمد أحمد', time: 'منذ 5 دقائق', color: 'text-blue-600' },
+              { icon: <DollarSign className="h-4 w-4" />, title: 'دفعة مستلمة', desc: 'تم استلام 50,000 ر.س من العميل سارة خالد', time: 'منذ 15 دقيقة', color: 'text-green-600' },
+              { icon: <Users className="h-4 w-4" />, title: 'عميل جديد', desc: 'تم تسجيل العميل عبدالله محمد', time: 'منذ ساعة', color: 'text-purple-600' },
+              { icon: <Building2 className="h-4 w-4" />, title: 'وحدة محجوزة', desc: 'تم حجز الوحدة A-101 في مشروع النخيل', time: 'منذ ساعتين', color: 'text-orange-600' },
+            ].map((activity, index) => (
+              <div key={index} className="flex items-start gap-3">
+                <div className={`p-2 rounded-full bg-gray-100 dark:bg-gray-800 ${activity.color}`}>
+                  {activity.icon}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium">{activity.title}</p>
+                  <p className="text-xs text-muted-foreground">{activity.desc}</p>
+                  <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </MotionSection>
   )
 }

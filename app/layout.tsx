@@ -4,10 +4,11 @@ import './globals.css'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { ViewTransitionsProvider } from '@/components/providers/view-transitions'
 import { QueryProvider } from '@/components/providers/query-provider'
+import { NotificationProvider } from '@/components/providers/notification-provider'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { GlassHeader } from '@/components/ui/glass-header'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { NotificationsDrawer } from '@/components/ui/notifications-drawer'
+import { NotificationsDrawerEnhanced } from '@/components/ui/notifications-drawer-enhanced'
 import { CommandPalette } from '@/components/ui/command-palette'
 import { Footer } from '@/components/ui/footer'
 import LoggerProvider from '@/components/system/LoggerProvider'
@@ -40,7 +41,8 @@ export default function RootLayout({
         >
           <QueryProvider>
             <ViewTransitionsProvider>
-              <LoggerProvider>
+              <NotificationProvider>
+                <LoggerProvider>
               <CommandPalette />
               <div className="flex h-screen overflow-hidden bg-background">
               {/* Sidebar */}
@@ -62,7 +64,7 @@ export default function RootLayout({
                   {/* Header Actions */}
                   <div className="flex items-center gap-2">
                     <ThemeToggle />
-                    <NotificationsDrawer />
+                    <NotificationsDrawerEnhanced />
                   </div>
                 </GlassHeader>
             
@@ -76,6 +78,7 @@ export default function RootLayout({
               </div>
             </div>
           </LoggerProvider>
+          </NotificationProvider>
           </ViewTransitionsProvider>
           </QueryProvider>
         </ThemeProvider>

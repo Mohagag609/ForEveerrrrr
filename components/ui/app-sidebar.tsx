@@ -27,7 +27,8 @@ import {
   Shield,
   ChevronRight,
   ChevronLeft,
-  Menu
+  Menu,
+  LayoutDashboard
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -51,7 +52,7 @@ const menuItems: MenuItem[] = [
     id: "dashboard",
     title: "لوحة التحكم",
     href: "/dashboard",
-    icon: TrendingUp,
+    icon: LayoutDashboard,
     badge: "جديد"
   },
   {
