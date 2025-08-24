@@ -33,6 +33,11 @@ model Client {
   invoices     Invoice[]
   installments Installment[]
   vouchers     Voucher[]
+  
+  @@index([name])
+  @@index([phone])
+  @@index([email])
+  @@index([createdAt])
 }
 
 // الموردين
@@ -50,6 +55,9 @@ model Supplier {
   expenses  Expense[]
   invoices  Invoice[]
   vouchers  Voucher[]
+  
+  @@index([name])
+  @@index([createdAt])
 }
 
 // الشركاء

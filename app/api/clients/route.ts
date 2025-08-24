@@ -1,9 +1,7 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { codeGenerators } from '@/lib/code-generator'
-
-const prisma = new PrismaClient()
 
 export const dynamic = 'force-dynamic'
 
