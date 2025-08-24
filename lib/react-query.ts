@@ -5,8 +5,8 @@ export const queryClient = new QueryClient({
     queries: {
       // Cache data for 5 minutes
       staleTime: 5 * 60 * 1000,
-      // Keep cache for 10 minutes
-      cacheTime: 10 * 60 * 1000,
+      // Keep cache for 10 minutes (gcTime in v5)
+      gcTime: 10 * 60 * 1000,
       // Retry failed requests 3 times
       retry: 3,
       // Refetch on window focus
