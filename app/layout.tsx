@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { ViewTransitionsProvider } from '@/components/providers/view-transitions'
 import { AppSidebar } from '@/components/ui/app-sidebar'
 import { GlassHeader } from '@/components/ui/glass-header'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
@@ -36,9 +37,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <LoggerProvider>
-            <CommandPalette />
-            <div className="flex h-screen overflow-hidden bg-background">
+          <ViewTransitionsProvider>
+            <LoggerProvider>
+              <CommandPalette />
+              <div className="flex h-screen overflow-hidden bg-background">
               {/* Sidebar */}
               <AppSidebar />
               
@@ -72,6 +74,7 @@ export default function RootLayout({
               </div>
             </div>
           </LoggerProvider>
+          </ViewTransitionsProvider>
         </ThemeProvider>
       </body>
     </html>

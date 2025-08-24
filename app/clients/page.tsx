@@ -36,6 +36,7 @@ import { Plus, Search, Edit, Trash2, X, MoreHorizontal, Mail, Phone, MapPin, Fil
 import { motion } from "framer-motion"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
 import { useErrorToast } from "@/lib/hooks/useErrorToast"
+import { ExportButton } from "@/components/export/export-button"
 import type { ColumnDef } from "@tanstack/react-table"
 
 interface Client {
@@ -284,6 +285,18 @@ export default function ClientsPage() {
           <h1 className="text-3xl font-bold tracking-tight">العملاء</h1>
           <p className="text-muted-foreground">إدارة بيانات العملاء</p>
         </div>
+        <ExportButton
+          data={clients}
+          filename="clients"
+          title="قائمة العملاء"
+          columns={[
+            { key: 'code', label: 'كود العميل' },
+            { key: 'name', label: 'اسم العميل' },
+            { key: 'phone', label: 'رقم الهاتف' },
+            { key: 'email', label: 'البريد الإلكتروني' },
+            { key: 'address', label: 'العنوان' }
+          ]}
+        />
       </div>
 
       {/* Data Table */}

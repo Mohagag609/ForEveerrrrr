@@ -10,6 +10,7 @@ import { Plus, Search, FileText, Calendar, Calculator, DollarSign, Users } from 
 import { motion } from "framer-motion"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
+import { GenerateInstallmentsButton } from "@/components/contracts/generate-installments-button"
 
 interface Contract {
   id: string
@@ -552,11 +553,20 @@ export default function ContractsPage() {
                   
                   <div className="flex items-center justify-between pt-2 text-xs text-muted-foreground border-t">
                     <span>الأقساط: {contract._count?.installments || 0}</span>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={`/installments?contractId=${contract.id}`}>
-                        عرض الأقساط
-                      </a>
-                    </Button>
+                    <div className="flex gap-2">
+                      {contract._count?.installments === 0 && (
+                        <GenerateInstallmentsButton
+                          contractId={contract.id}
+                          contractNo={contract.contractNo}
+                          onSuccess={fetchContracts}
+                        />
+                      )}
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={`/installments?contractId=${contract.id}`}>
+                          عرض الأقساط
+                        </a>
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

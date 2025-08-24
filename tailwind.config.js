@@ -51,6 +51,29 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Modern design tokens
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          foreground: "hsl(var(--surface-foreground))",
+        },
+        glass: {
+          DEFAULT: "hsl(var(--glass))",
+          foreground: "hsl(var(--glass-foreground))",
+        },
+        gradient: {
+          from: "hsl(var(--gradient-from))",
+          via: "hsl(var(--gradient-via))",
+          to: "hsl(var(--gradient-to))",
+        },
+      },
+      backdropBlur: {
+        xs: "2px",
+      },
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
+        'glass-dark': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+        'subtle': '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+        'subtle-dark': '0 1px 3px 0 rgba(255, 255, 255, 0.05)',
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -66,10 +89,45 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "fade-up": {
+          from: { opacity: "0", transform: "translateY(10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-down": {
+          from: { opacity: "0", transform: "translateY(-10px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "slide-in-right": {
+          from: { transform: "translateX(100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "slide-in-left": {
+          from: { transform: "translateX(-100%)" },
+          to: { transform: "translateX(0)" },
+        },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
+        shimmer: {
+          from: { backgroundPosition: "0 0" },
+          to: { backgroundPosition: "-200% 0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in": "fade-in 0.3s ease-out",
+        "fade-up": "fade-up 0.5s ease-out",
+        "fade-down": "fade-down 0.5s ease-out",
+        "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-in-left": "slide-in-left 0.3s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
+        shimmer: "shimmer 2s linear infinite",
       },
     },
   },

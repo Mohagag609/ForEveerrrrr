@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { GradientHero } from "@/components/ui/gradient-hero"
 import Link from "next/link"
 import { 
   Building2, 
@@ -69,26 +70,13 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="rounded-lg bg-gradient-to-r from-primary to-primary/80 p-8 text-white">
-        <h1 className="mb-4 text-4xl font-bold">نظام ERP العقاري المتكامل</h1>
-        <p className="mb-6 text-lg opacity-90">
-          نظام محاسبي وإداري شامل لإدارة شركات المقاولات والعقارات
-        </p>
-        <div className="flex gap-4">
-          <Button asChild size="lg" variant="secondary">
-            <Link href="/dashboard">
-              <TrendingUp className="ml-2 h-5 w-5" />
-              لوحة التحكم
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline" className="text-white hover:text-primary">
-            <Link href="/contracts/new">
-              <FileText className="ml-2 h-5 w-5" />
-              عقد جديد
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <GradientHero
+        title="نظام ERP العقاري المتكامل"
+        subtitle="نظام محاسبي وإداري شامل لإدارة شركات المقاولات والعقارات"
+        ctaText="لوحة التحكم"
+        onCtaClick={() => window.location.href = '/dashboard'}
+        gradient="ocean"
+      />
 
       {/* Features Grid */}
       <div>
