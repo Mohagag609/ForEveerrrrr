@@ -5,10 +5,10 @@ const prisma = new PrismaClient()
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const contractId = params.id
+    const { id: contractId } = await params
 
     // Get contract details
     const contract = await prisma.contract.findUnique({
