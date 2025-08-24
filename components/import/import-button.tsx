@@ -93,7 +93,7 @@ export function ImportButton({
       const XLSX = await import('xlsx')
       
       // Create template with column headers
-      const templateData = [{}]
+      const templateData: Record<string, any>[] = [{}]
       columns.forEach(col => {
         templateData[0][col.label] = ''
       })
