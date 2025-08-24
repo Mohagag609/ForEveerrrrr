@@ -59,7 +59,7 @@ export function ImportButton({
           const workbook = XLSX.read(data, { type: 'binary' })
           const sheetName = workbook.SheetNames[0]
           const worksheet = workbook.Sheets[sheetName]
-          const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false })
+          const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false }) as Record<string, any>[]
           
           // Preview first 5 rows
           setPreview(jsonData.slice(0, 5))
