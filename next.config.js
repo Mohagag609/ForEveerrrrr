@@ -10,11 +10,8 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   
-  // Enable SWC minification for better performance
-  swcMinify: true,
-  
-  // Optimize font loading
-  optimizeFonts: true,
+  // SWC minification is enabled by default in Next.js 15
+  // Font optimization is enabled by default in Next.js 15
   
   // Enable compression
   compress: true,
@@ -39,10 +36,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
-    // Turbopack for development (faster builds)
-    turbo: {
-      resolveExtensions: ['.tsx', '.ts', '.jsx', '.js'],
-    },
+
   },
   
   // Production optimizations

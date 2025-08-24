@@ -1,5 +1,6 @@
 "use client";
 import {useEffect} from "react";
+import Link from "next/link";
 export default function Error({error, reset}:{error: Error & {digest?: string}, reset: ()=>void}) {
   useEffect(()=>{ console.error("[app/error]", error); },[error]);
   const isDev = process.env.NODE_ENV !== "production";
@@ -15,7 +16,7 @@ export default function Error({error, reset}:{error: Error & {digest?: string}, 
         )}
         <div className="flex gap-3">
           <button onClick={()=>reset()} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground">إعادة المحاولة</button>
-          <a href="/" className="px-4 py-2 rounded-lg border">العودة للوحة التحكم</a>
+          <Link href="/" className="px-4 py-2 rounded-lg border">العودة للوحة التحكم</Link>
         </div>
       </div>
     </div>
