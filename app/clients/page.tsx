@@ -115,7 +115,6 @@ export default function ClientsPage() {
         setShowForm(false)
         setEditingClient(null)
         setFormData({
-          code: '',
           name: '',
           phone: '',
           email: '',
