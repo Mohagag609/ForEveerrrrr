@@ -248,12 +248,13 @@ export default function EmployeesPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="code">كود الموظف *</Label>
+                      <Label htmlFor="code">كود الموظف</Label>
                       <Input
                         id="code"
                         value={formData.code}
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                        required
+                        placeholder="سيتم توليده تلقائياً"
+                        readOnly
                       />
                     </div>
                     

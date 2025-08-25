@@ -205,7 +205,7 @@ export default function JournalEntriesPage() {
           <h1 className="text-3xl font-bold">القيود المحاسبية</h1>
           <p className="text-muted-foreground">إدارة القيود اليومية</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button type="button" onClick={() => setShowForm(true)}>
           <Plus className="ml-2 h-4 w-4" />
           قيد جديد
         </Button>
@@ -228,10 +228,7 @@ export default function JournalEntriesPage() {
 
       {/* Add Form */}
       {showForm && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <div>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -285,12 +282,12 @@ export default function JournalEntriesPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="project">المشروع (اختياري)</Label>
-                    <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value })}>
+                    <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value === 'none' ? '' : value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر المشروع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">بدون مشروع</SelectItem>
+                        <SelectItem value="none">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id}>
                             {project.name} ({project.code})
@@ -439,7 +436,7 @@ export default function JournalEntriesPage() {
               </form>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Entries List */}

@@ -262,12 +262,12 @@ export default function ExpensesPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="supplier">المورد (اختياري)</Label>
-                    <Select value={formData.supplierId} onValueChange={(value) => setFormData({ ...formData, supplierId: value })}>
+                    <Select value={formData.supplierId} onValueChange={(value) => setFormData({ ...formData, supplierId: value === 'none' ? '' : value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر المورد" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">بدون مورد</SelectItem>
+                        <SelectItem value="none">بدون مورد</SelectItem>
                         {suppliers.map((supplier) => (
                           <SelectItem key={supplier.id} value={supplier.id}>
                             {supplier.name} ({supplier.code})
@@ -279,12 +279,12 @@ export default function ExpensesPage() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="project">المشروع (اختياري)</Label>
-                    <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value })}>
+                    <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value === 'none' ? '' : value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر المشروع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">بدون مشروع</SelectItem>
+                        <SelectItem value="none">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id}>
                             {project.name} ({project.code})

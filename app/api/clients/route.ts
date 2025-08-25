@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { codeGenerators } from '@/lib/code-generator'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createClientSchema = z.object({
-  code: z.string().min(1, 'كود العميل مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم العميل مطلوب'),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
@@ -63,17 +64,8 @@ export async function POST(request: Request) {
     // التحقق من البيانات
     const validatedData = createClientSchema.parse(body)
     
-    // التحقق من عدم تكرار الكود
-    const existingClient = await prisma.client.findUnique({
-      where: { code: validatedData.code }
-    })
-    
-    if (existingClient) {
-      return NextResponse.json(
-        { error: 'كود العميل موجود بالفعل' },
-        { status: 400 }
-      )
-    }
+    // توليد كود تلقائي إذا لم يُرسل
+    const code = body.code && body.code.trim() !== '' ? body.code : await codeGenerators.client()
     
     // التحقق من البريد الإلكتروني إذا كان موجوداً
     if (validatedData.email) {
@@ -93,6 +85,7 @@ export async function POST(request: Request) {
     const client = await prisma.client.create({
       data: {
         ...validatedData,
+        code,
         email: validatedData.email || null
       },
       include: {

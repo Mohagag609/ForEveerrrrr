@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -65,9 +65,9 @@ export async function POST(request: NextRequest) {
       const move = await prisma.materialMove.create({
         data: {
           ...validatedData,
-          quantity: new Decimal(validatedData.quantity),
-          price: new Decimal(validatedData.price),
-          totalAmount: new Decimal(totalAmount)
+          quantity: new Prisma.Decimal(validatedData.quantity),
+          price: new Prisma.Decimal(validatedData.price),
+          totalAmount: new Prisma.Decimal(totalAmount)
         },
         include: {
           material: true,
@@ -88,9 +88,9 @@ export async function POST(request: NextRequest) {
       let newQuantity = material.currentQty
       
       if (validatedData.type === 'in') {
-        newQuantity = newQuantity.add(new Decimal(validatedData.quantity))
+        newQuantity = newQuantity.add(new Prisma.Decimal(validatedData.quantity))
       } else if (validatedData.type === 'out') {
-        newQuantity = newQuantity.sub(new Decimal(validatedData.quantity))
+        newQuantity = newQuantity.sub(new Prisma.Decimal(validatedData.quantity))
         
         if (newQuantity.lessThan(0)) {
           throw new Error('الكمية المتاحة غير كافية')
@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
         where: { id: validatedData.materialId },
         data: {
           currentQty: newQuantity,
-          lastPrice: validatedData.type === 'in' ? new Decimal(validatedData.price) : material.lastPrice
+          lastPrice: validatedData.type === 'in' ? new Prisma.Decimal(validatedData.price) : material.lastPrice
         }
       })
       

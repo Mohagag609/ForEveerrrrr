@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createUnitSchema = z.object({
-  code: z.string().min(1, 'كود الوحدة مطلوب'),
+  code: z.string().optional(),
   projectId: z.string().min(1, 'المشروع مطلوب'),
   type: z.string().min(1, 'نوع الوحدة مطلوب'),
   area: z.number().positive('المساحة يجب أن تكون موجبة'),
@@ -52,9 +53,14 @@ export async function POST(request: Request) {
     // التحقق من البيانات
     const validatedData = createUnitSchema.parse(body)
     
+    // توليد الكود تلقائياً إذا لم يُرسل
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.unit()
+    
     // التحقق من عدم تكرار الكود
     const existingUnit = await prisma.unit.findUnique({
-      where: { code: validatedData.code }
+      where: { code }
     })
     
     if (existingUnit) {
@@ -66,7 +72,7 @@ export async function POST(request: Request) {
     
     // إنشاء الوحدة
     const unit = await prisma.unit.create({
-      data: validatedData,
+      data: { ...validatedData, code },
       include: {
         project: true
       }

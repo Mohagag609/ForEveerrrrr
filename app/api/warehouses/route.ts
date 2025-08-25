@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createWarehouseSchema = z.object({
-  code: z.string().min(1, 'كود المخزن مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم المخزن مطلوب'),
   location: z.string().optional()
 })
@@ -44,9 +45,14 @@ export async function POST(request: NextRequest) {
     // التحقق من البيانات
     const validatedData = createWarehouseSchema.parse(body)
     
+    // توليد الكود تلقائياً إذا لم يُرسل
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.warehouse()
+    
     // التحقق من عدم تكرار الكود
     const existingWarehouse = await prisma.warehouse.findUnique({
-      where: { code: validatedData.code }
+      where: { code }
     })
     
     if (existingWarehouse) {
@@ -58,7 +64,7 @@ export async function POST(request: NextRequest) {
     
     // إنشاء المخزن
     const warehouse = await prisma.warehouse.create({
-      data: validatedData,
+      data: { ...validatedData, code },
       include: {
         _count: {
           select: {

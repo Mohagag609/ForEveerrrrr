@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createEmployeeSchema = z.object({
-  code: z.string().min(1, 'كود الموظف مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم الموظف مطلوب'),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
@@ -51,22 +52,16 @@ export async function POST(request: NextRequest) {
     // التحقق من البيانات
     const validatedData = createEmployeeSchema.parse(body)
     
-    // التحقق من عدم تكرار الكود
-    const existingEmployee = await prisma.employee.findUnique({
-      where: { code: validatedData.code }
-    })
-    
-    if (existingEmployee) {
-      return NextResponse.json(
-        { error: 'كود الموظف موجود بالفعل' },
-        { status: 400 }
-      )
-    }
+    // توليد الكود تلقائياً إذا لم يُرسل
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.employee()
     
     // إنشاء الموظف
     const employee = await prisma.employee.create({
       data: {
         ...validatedData,
+        code,
         hireDate: new Date(validatedData.hireDate)
       },
       include: {

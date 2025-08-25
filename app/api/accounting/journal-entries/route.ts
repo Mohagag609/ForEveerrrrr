@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
           lines: {
             create: validatedData.lines.map(line => ({
               accountId: line.accountId,
-              debit: new Decimal(line.debit),
-              credit: new Decimal(line.credit),
+              debit: new Prisma.Decimal(line.debit),
+              credit: new Prisma.Decimal(line.credit),
               description: line.description
             }))
           }

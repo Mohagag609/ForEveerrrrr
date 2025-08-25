@@ -3,10 +3,11 @@ import { NextResponse } from 'next/server'
 export const dynamic = 'force-dynamic'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { codeGenerators } from '@/lib/code-generator'
 
 // Schema للتحقق من البيانات
 const createPartnerSchema = z.object({
-  code: z.string().min(1, 'كود الشريك مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم الشريك مطلوب'),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
@@ -47,20 +48,12 @@ export async function POST(request: Request) {
     // التحقق من البيانات
     const validatedData = createPartnerSchema.parse(body)
     
-    // التحقق من عدم تكرار الكود
-    const existingPartner = await prisma.partner.findUnique({
-      where: { code: validatedData.code }
-    })
-    
-    if (existingPartner) {
-      return NextResponse.json(
-        { error: 'كود الشريك موجود بالفعل' },
-        { status: 400 }
-      )
-    }
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.partner()
     
     const partner = await prisma.partner.create({
-      data: validatedData,
+      data: { ...validatedData, code },
       include: {
         _count: {
           select: { 

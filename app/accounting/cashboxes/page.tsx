@@ -231,12 +231,13 @@ export default function CashboxesPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="code">كود الصندوق *</Label>
+                      <Label htmlFor="code">كود الصندوق</Label>
                       <Input
                         id="code"
                         value={formData.code}
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                        required
+                        placeholder="سيتم توليده تلقائياً"
+                        readOnly
                       />
                     </div>
                     
@@ -298,7 +299,7 @@ export default function CashboxesPage() {
 
       {/* Transfer Form Modal */}
       {showTransferForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items_center justify_center bg-black/50 p-4">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

@@ -122,13 +122,14 @@ export default function PartnersPage() {
             )}
             
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', marginBottom: '5px' }}>كود الشريك *</label>
+              <label style={{ display: 'block', marginBottom: '5px' }}>كود الشريك</label>
               <input
                 type="text"
                 value={formData.code}
                 onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                required
-                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                placeholder="سيتم توليده تلقائياً"
+                readOnly
+                style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f8f9fa' }}
               />
             </div>
             

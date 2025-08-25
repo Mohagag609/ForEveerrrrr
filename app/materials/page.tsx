@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Package, AlertTriangle, X } from "lucide-react"
+import { Plus, Search, Package, AlertTriangle, X, Edit, Trash2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { formatCurrency } from "@/lib/utils"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
@@ -42,6 +42,7 @@ export default function MaterialsPage() {
     category: '',
     description: ''
   })
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchMaterials()
@@ -66,8 +67,10 @@ export default function MaterialsPage() {
     setError('')
     
     try {
-      const response = await fetch('/api/materials', {
-        method: 'POST',
+      const method = editingId ? 'PUT' : 'POST'
+      const url = editingId ? `/api/materials/${editingId}` : '/api/materials'
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -86,6 +89,7 @@ export default function MaterialsPage() {
           category: '',
           description: ''
         })
+        setEditingId(null)
         setShowForm(false)
       } else {
         setError(getErrorMessage(result))
@@ -93,6 +97,29 @@ export default function MaterialsPage() {
     } catch (error) {
       console.error('Error creating material:', error)
       setError('حدث خطأ في الاتصال بالخادم')
+    }
+  }
+
+  const handleEdit = (m: Material) => {
+    setEditingId(m.id)
+    setShowForm(true)
+    setFormData({
+      code: m.code,
+      name: m.name,
+      unit: m.unit,
+      minQuantity: String(m.minQuantity),
+      category: m.category || '',
+      description: m.description || ''
+    })
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذه المادة؟')) return
+    try {
+      const response = await fetch(`/api/materials/${id}`, { method: 'DELETE' })
+      if (response.ok) await fetchMaterials()
+    } catch (error) {
+      console.error('Error deleting material:', error)
     }
   }
 
@@ -115,12 +142,12 @@ export default function MaterialsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify_between">
         <div>
           <h1 className="text-3xl font-bold">المواد</h1>
           <p className="text-muted-foreground">إدارة المواد والمخزون</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => { setEditingId(null); setShowForm(true) }}>
           <Plus className="ml-2 h-4 w-4" />
           مادة جديدة
         </Button>
@@ -141,7 +168,7 @@ export default function MaterialsPage() {
         </CardContent>
       </Card>
 
-      {/* Add Form */}
+      {/* Add/Edit Form */}
       {showForm && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -150,13 +177,14 @@ export default function MaterialsPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>إضافة مادة جديدة</CardTitle>
+                <CardTitle>{editingId ? 'تعديل بيانات المادة' : 'إضافة مادة جديدة'}</CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => {
                     setShowForm(false)
                     setError('')
+                    setEditingId(null)
                   }}
                 >
                   <X className="h-4 w-4" />
@@ -180,6 +208,7 @@ export default function MaterialsPage() {
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                       required
+                      disabled={!!editingId}
                     />
                   </div>
                   
@@ -249,13 +278,14 @@ export default function MaterialsPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button type="submit">حفظ المادة</Button>
+                  <Button type="submit" className="h-11 rounded-xl">حفظ المادة</Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
                       setShowForm(false)
                       setError('')
+                      setEditingId(null)
                     }}
                   >
                     إلغاء
@@ -290,6 +320,14 @@ export default function MaterialsPage() {
                         {material.category && ` • ${material.category}`}
                       </p>
                     </div>
+                  </div>
+                  <div className="ml-auto flex items-center gap-2">
+                    <Button variant="outline" className="h-9 px-4 rounded-xl" onClick={() => handleEdit(material)}>
+                      <Edit className="ml-2 h-4 w-4" /> تعديل
+                    </Button>
+                    <Button variant="destructive" className="h-9 px-4 rounded-xl" onClick={() => handleDelete(material.id)}>
+                      <Trash2 className="ml-2 h-4 w-4" /> حذف
+                    </Button>
                   </div>
                 </div>
               </CardHeader>

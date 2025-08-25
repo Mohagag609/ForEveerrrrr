@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createCashboxSchema = z.object({
-  code: z.string().min(1, 'كود الصندوق مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم الصندوق مطلوب'),
   type: z.enum(['main', 'sub']),
   description: z.string().optional()
@@ -47,22 +48,15 @@ export async function POST(request: NextRequest) {
     // التحقق من البيانات
     const validatedData = createCashboxSchema.parse(body)
     
-    // التحقق من عدم تكرار الكود
-    const existingCashbox = await prisma.cashbox.findUnique({
-      where: { code: validatedData.code }
-    })
-    
-    if (existingCashbox) {
-      return NextResponse.json(
-        { error: 'كود الصندوق موجود بالفعل' },
-        { status: 400 }
-      )
-    }
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.cashbox()
     
     // إنشاء الصندوق بدون رصيد افتتاحي
     const cashbox = await prisma.cashbox.create({
       data: {
         ...validatedData,
+        code,
         balance: 0
       },
       include: {

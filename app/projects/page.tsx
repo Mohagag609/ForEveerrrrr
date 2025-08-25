@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Building2, Calendar, DollarSign } from "lucide-react"
+import { Plus, Search, Building2, Calendar, DollarSign, Edit, Trash2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 
 interface Project {
   id: string
@@ -47,6 +47,7 @@ export default function ProjectsPage() {
   const [showForm, setShowForm] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [error, setError] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -95,8 +96,10 @@ export default function ProjectsPage() {
     setError('')
     
     try {
-      const response = await fetch('/api/projects', {
-        method: 'POST',
+      const method = editingId ? 'PUT' : 'POST'
+      const url = editingId ? `/api/projects/${editingId}` : '/api/projects'
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -118,6 +121,7 @@ export default function ProjectsPage() {
           budget: '',
           description: ''
         })
+        setEditingId(null)
         setShowForm(false)
       } else {
         setError(getErrorMessage(result))
@@ -125,6 +129,32 @@ export default function ProjectsPage() {
     } catch (error) {
       console.error('Error creating project:', error)
       setError('حدث خطأ في الاتصال بالخادم')
+    }
+  }
+
+  const handleEdit = (project: Project) => {
+    setEditingId(project.id)
+    setShowForm(true)
+    setFormData({
+      code: project.code,
+      name: project.name,
+      clientId: project.clientId || '',
+      location: project.location || '',
+      status: project.status,
+      startDate: project.startDate ? project.startDate.substring(0, 10) : '',
+      endDate: project.endDate ? project.endDate.substring(0, 10) : '',
+      budget: project.budget ? String(project.budget) : '',
+      description: project.description || ''
+    })
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا المشروع؟')) return
+    try {
+      const response = await fetch(`/api/projects/${id}`, { method: 'DELETE' })
+      if (response.ok) await fetchProjects()
+    } catch (error) {
+      console.error('Error deleting project:', error)
     }
   }
 
@@ -170,7 +200,7 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-bold">المشاريع</h1>
           <p className="text-muted-foreground">إدارة المشاريع العقارية</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button type="button" onClick={(e) => { e.preventDefault(); setEditingId(null); setShowForm(true) }}>
           <Plus className="ml-2 h-4 w-4" />
           مشروع جديد
         </Button>
@@ -194,11 +224,7 @@ export default function ProjectsPage() {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-          >
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <Card>
               <CardHeader>
                 <CardTitle>إضافة مشروع جديد</CardTitle>
@@ -213,12 +239,13 @@ export default function ProjectsPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="code">كود المشروع *</Label>
+                      <Label htmlFor="code">كود المشروع</Label>
                       <Input
                         id="code"
                         value={formData.code}
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                        required
+                        placeholder="سيتم توليده تلقائياً"
+                        readOnly
                       />
                     </div>
                     
@@ -236,12 +263,12 @@ export default function ProjectsPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="clientId">العميل</Label>
-                      <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
+                      <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value === 'none' ? '' : value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر العميل" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">بدون عميل</SelectItem>
+                          <SelectItem value="none">بدون عميل</SelectItem>
                           {clients.map((client) => (
                             <SelectItem key={client.id} value={client.id}>
                               {client.name} ({client.code})
@@ -338,7 +365,7 @@ export default function ProjectsPage() {
                 </form>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       )}
 
@@ -366,9 +393,17 @@ export default function ProjectsPage() {
                       <CardTitle className="text-lg">{project.name}</CardTitle>
                       <CardDescription>كود: {project.code}</CardDescription>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
-                      {getStatusText(project.status)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(project.status)}`}>
+                        {getStatusText(project.status)}
+                      </span>
+                      <Button variant="outline" className="h-9 px-4 rounded-xl" onClick={() => handleEdit(project)}>
+                        <Edit className="ml-2 h-4 w-4" /> تعديل
+                      </Button>
+                      <Button variant="destructive" className="h-9 px-4 rounded-xl" onClick={() => handleDelete(project.id)}>
+                        <Trash2 className="ml-2 h-4 w-4" /> حذف
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

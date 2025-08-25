@@ -234,7 +234,7 @@ export default function AccountsPage() {
           <h1 className="text-3xl font-bold">دليل الحسابات</h1>
           <p className="text-muted-foreground">إدارة شجرة الحسابات المحاسبية</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button type="button" onClick={(e) => { e.preventDefault(); setShowForm(true) }}>
           <Plus className="ml-2 h-4 w-4" />
           حساب جديد
         </Button>
@@ -258,11 +258,7 @@ export default function AccountsPage() {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md"
-          >
+          <div className="w-full max-w-md">
             <Card>
               <CardHeader>
                 <CardTitle>إضافة حساب جديد</CardTitle>
@@ -277,13 +273,13 @@ export default function AccountsPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="code">رقم الحساب *</Label>
+                      <Label htmlFor="code">رقم الحساب</Label>
                       <Input
                         id="code"
                         value={formData.code}
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                        placeholder="1110"
-                        required
+                        placeholder="سيتم توليده تلقائياً"
+                        readOnly
                       />
                     </div>
                     
@@ -317,12 +313,12 @@ export default function AccountsPage() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="parentId">الحساب الرئيسي</Label>
-                    <Select value={formData.parentId} onValueChange={(value) => setFormData({ ...formData, parentId: value })}>
+                    <Select value={formData.parentId} onValueChange={(value) => setFormData({ ...formData, parentId: value === 'none' ? '' : value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر الحساب الرئيسي (اختياري)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">بدون حساب رئيسي</SelectItem>
+                        <SelectItem value="none">بدون حساب رئيسي</SelectItem>
                         {accounts
                           .filter(acc => acc.type === formData.type)
                           .map(account => (
@@ -373,7 +369,7 @@ export default function AccountsPage() {
                 </form>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       )}
 

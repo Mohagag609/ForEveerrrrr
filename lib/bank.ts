@@ -1,5 +1,5 @@
 import { prisma } from './prisma'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
 
 interface MatchBankCreditsParams {
   toleranceAmt?: number
@@ -43,12 +43,12 @@ export async function matchBankCredits({
   
   // محاولة مطابقة كل إيداع
   for (const credit of unmatchedCredits) {
-    const creditAmount = new Decimal(credit.amount)
+    const creditAmount = new Prisma.Decimal(credit.amount)
     const creditDate = new Date(credit.date)
     
     // البحث عن قسط مطابق
     const matchingInstallment = pendingInstallments.find(installment => {
-      const installmentAmount = new Decimal(installment.amount)
+      const installmentAmount = new Prisma.Decimal(installment.amount)
       const installmentDate = new Date(installment.dueDate)
       
       // التحقق من المبلغ (مع هامش التسامح)
