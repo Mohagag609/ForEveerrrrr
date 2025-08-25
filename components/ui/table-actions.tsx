@@ -158,7 +158,7 @@ export function ActionMenu({
 
 interface StatusBadgeProps {
   status: string
-  variant?: "default" | "success" | "warning" | "error" | "info"
+  variant?: "default" | "secondary" | "destructive" | "outline"
   size?: "sm" | "default" | "lg"
   className?: string
 }
@@ -171,32 +171,32 @@ export function StatusBadge({
 }: StatusBadgeProps) {
   const getStatusConfig = (status: string) => {
     const configs: Record<string, {
-      variant: "default" | "success" | "warning" | "error" | "info"
+      variant: "default" | "secondary" | "destructive" | "outline"
       icon: React.ElementType
       className: string
     }> = {
       active: {
-        variant: "success",
+        variant: "default",
         icon: CheckCircle,
         className: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
       },
       inactive: {
-        variant: "error",
+        variant: "destructive",
         icon: XCircle,
         className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
       },
       pending: {
-        variant: "warning",
+        variant: "secondary",
         icon: Clock,
         className: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
       },
       completed: {
-        variant: "success",
+        variant: "default",
         icon: CheckCircle,
         className: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
       },
       cancelled: {
-        variant: "error",
+        variant: "destructive",
         icon: XCircle,
         className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
       },
@@ -206,7 +206,7 @@ export function StatusBadge({
         className: "bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
       },
       published: {
-        variant: "success",
+        variant: "default",
         icon: CheckCircle,
         className: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
       },
@@ -230,10 +230,11 @@ export function StatusBadge({
   return (
     <Badge
       variant={config.variant}
-      size={size}
       className={cn(
         "inline-flex items-center gap-2 px-3 py-1 rounded-full border font-medium",
         "transition-all duration-200 hover:scale-105",
+        size === "sm" && "text-xs px-2 py-0.5",
+        size === "lg" && "text-sm px-4 py-2",
         config.className,
         className
       )}
@@ -247,7 +248,7 @@ export function StatusBadge({
 interface DataCellProps {
   value: string | number | boolean | Date | null | undefined
   type?: "text" | "number" | "currency" | "date" | "status" | "boolean" | "email" | "phone" | "url"
-  format?: string
+  format?: Intl.DateTimeFormatOptions
   className?: string
   icon?: React.ElementType
   statusConfig?: Record<string, any>
@@ -261,19 +262,19 @@ export function DataCell({
   icon: Icon,
   statusConfig,
 }: DataCellProps) {
-  const formatValue = () => {
+    const formatValue = (): React.ReactNode => {
     if (value === null || value === undefined) return "-"
     
     switch (type) {
       case "number":
-        return typeof value === "number" ? value.toLocaleString() : value
+        return typeof value === "number" ? value.toLocaleString() : String(value)
       case "currency":
-        return typeof value === "number" ? `$${value.toLocaleString()}` : value
+        return typeof value === "number" ? `$${value.toLocaleString()}` : String(value)
       case "date":
         if (value instanceof Date) {
           return format ? value.toLocaleDateString("ar-SA", { ...format }) : value.toLocaleDateString("ar-SA")
         }
-        return value
+        return String(value)
       case "status":
         return statusConfig ? (
           <StatusBadge status={String(value)} {...statusConfig} />
@@ -290,8 +291,8 @@ export function DataCell({
         return (
           <div className="flex items-center gap-2">
             <Mail className="h-4 w-4 text-muted-foreground" />
-            <a href={`mailto:${value}`} className="text-blue-600 hover:underline">
-              {value}
+            <a href={`mailto:${String(value)}`} className="text-blue-600 hover:underline">
+              {String(value)}
             </a>
           </div>
         )
@@ -299,8 +300,8 @@ export function DataCell({
         return (
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4 text-muted-foreground" />
-            <a href={`tel:${value}`} className="text-blue-600 hover:underline">
-              {value}
+            <a href={`tel:${String(value)}`} className="text-blue-600 hover:underline">
+              {String(value)}
             </a>
           </div>
         )
@@ -309,12 +310,12 @@ export function DataCell({
           <div className="flex items-center gap-2">
             <ExternalLink className="h-4 w-4 text-muted-foreground" />
             <a href={String(value)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-              {value}
+              {String(value)}
             </a>
           </div>
         )
       default:
-        return value
+        return String(value)
     }
   }
 
@@ -330,9 +331,3 @@ export function DataCell({
   )
 }
 
-export {
-  ActionButton,
-  ActionMenu,
-  StatusBadge,
-  DataCell,
-}
