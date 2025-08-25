@@ -205,7 +205,7 @@ export default function JournalEntriesPage() {
           <h1 className="text-3xl font-bold">القيود المحاسبية</h1>
           <p className="text-muted-foreground">إدارة القيود اليومية</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button type="button" onClick={() => setShowForm(true)}>
           <Plus className="ml-2 h-4 w-4" />
           قيد جديد
         </Button>
