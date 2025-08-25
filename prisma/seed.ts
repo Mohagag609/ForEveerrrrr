@@ -13,8 +13,7 @@ async function main() {
       data: {
         code: 'ACC-001',
         name: 'الصندوق الرئيسي',
-        type: 'CASH',
-        balance: 0,
+        type: 'asset',
         description: 'الصندوق النقدي الرئيسي للشركة'
       }
     }),
@@ -22,8 +21,7 @@ async function main() {
       data: {
         code: 'ACC-002',
         name: 'البنك الأهلي',
-        type: 'BANK',
-        balance: 0,
+        type: 'asset',
         description: 'حساب البنك الأهلي التجاري'
       }
     }),
@@ -31,8 +29,7 @@ async function main() {
       data: {
         code: 'ACC-003',
         name: 'حساب العملاء',
-        type: 'RECEIVABLE',
-        balance: 0,
+        type: 'asset',
         description: 'حساب مديونية العملاء'
       }
     }),
@@ -40,8 +37,7 @@ async function main() {
       data: {
         code: 'ACC-004',
         name: 'حساب الموردين',
-        type: 'PAYABLE',
-        balance: 0,
+        type: 'liability',
         description: 'حساب مديونية الموردين'
       }
     })
@@ -54,7 +50,9 @@ async function main() {
   
   const cashbox = await prisma.cashbox.create({
     data: {
+      code: 'CB-001',
       name: 'الصندوق الرئيسي',
+      type: 'main',
       balance: 0,
       description: 'الصندوق النقدي الرئيسي'
     }
@@ -69,9 +67,7 @@ async function main() {
     data: {
       code: 'WH-001',
       name: 'المخزن الرئيسي',
-      location: 'الرياض',
-      manager: 'أحمد محمد',
-      phone: '0501234567'
+      location: 'الرياض'
     }
   })
 
@@ -86,10 +82,10 @@ async function main() {
         code: 'MAT-001',
         name: 'أسمنت',
         unit: 'كيس',
-        unitPrice: 25,
+        lastPrice: 25,
         minQuantity: 100,
-        currentQuantity: 0,
-        warehouseId: warehouse.id
+        currentQty: 0,
+        category: 'مواد بناء'
       }
     }),
     prisma.material.create({
@@ -97,10 +93,10 @@ async function main() {
         code: 'MAT-002',
         name: 'حديد تسليح',
         unit: 'طن',
-        unitPrice: 5000,
+        lastPrice: 5000,
         minQuantity: 10,
-        currentQuantity: 0,
-        warehouseId: warehouse.id
+        currentQty: 0,
+        category: 'مواد بناء'
       }
     }),
     prisma.material.create({
@@ -108,10 +104,10 @@ async function main() {
         code: 'MAT-003',
         name: 'رمل',
         unit: 'متر مكعب',
-        unitPrice: 80,
+        lastPrice: 80,
         minQuantity: 50,
-        currentQuantity: 0,
-        warehouseId: warehouse.id
+        currentQty: 0,
+        category: 'مواد بناء'
       }
     })
   ])
