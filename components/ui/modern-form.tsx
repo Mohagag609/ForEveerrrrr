@@ -36,7 +36,7 @@ import {
 } from "lucide-react"
 
 // Modern Input Component
-interface ModernInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface ModernInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string
   error?: string
   success?: string
@@ -156,7 +156,7 @@ export function ModernInput({
 }
 
 // Modern Textarea Component
-interface ModernTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+interface ModernTextareaProps extends Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
   label?: string
   error?: string
   success?: string
@@ -461,11 +461,3 @@ export function ModernFormFieldGroup({
   )
 }
 
-export {
-  ModernInput,
-  ModernTextarea,
-  ModernSelect,
-  ModernFormCard,
-  ModernFormActions,
-  ModernFormFieldGroup,
-}
