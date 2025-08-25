@@ -258,11 +258,7 @@ export default function AccountsPage() {
       {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-md"
-          >
+          <div className="w-full max-w-md">
             <Card>
               <CardHeader>
                 <CardTitle>إضافة حساب جديد</CardTitle>
@@ -373,7 +369,7 @@ export default function AccountsPage() {
                 </form>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </div>
       )}
 

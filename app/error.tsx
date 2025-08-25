@@ -3,7 +3,7 @@ import {useEffect} from "react";
 import Link from "next/link";
 export default function Error({error, reset}:{error: Error & {digest?: string}, reset: ()=>void}) {
   useEffect(()=>{ console.error("[app/error]", error); },[error]);
-  const isDev = process.env.NODE_ENV !== "production";
+  const isDev = true;
   return (
     <div dir="rtl" className="min-h-[60vh] grid place-items-center p-6">
       <div className="max-w-xl w-full rounded-2xl border border-border/40 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md p-6 shadow-xl">

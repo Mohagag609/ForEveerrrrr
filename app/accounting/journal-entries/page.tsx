@@ -228,10 +228,7 @@ export default function JournalEntriesPage() {
 
       {/* Add Form */}
       {showForm && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <div>
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -439,7 +436,7 @@ export default function JournalEntriesPage() {
               </form>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Entries List */}
