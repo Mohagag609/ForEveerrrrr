@@ -50,15 +50,12 @@ export async function POST(request: NextRequest) {
     // التحقق من البيانات
     const validatedData = createAccountSchema.parse(body)
     
-    // توليد رقم الحساب تلقائياً إذا لم يُرسل
-    const code = validatedData.code && validatedData.code.trim() !== ''
-      ? validatedData.code
-      : await codeGenerators.account(validatedData.parentId)
-    
     // التحقق من الحساب الرئيسي إذا كان موجود
+    let parentAccount: { code: string; type: string } | null = null
     if (validatedData.parentId) {
-      const parentAccount = await prisma.account.findUnique({
-        where: { id: validatedData.parentId }
+      parentAccount = await prisma.account.findUnique({
+        where: { id: validatedData.parentId },
+        select: { code: true, type: true }
       })
       
       if (!parentAccount) {
@@ -76,6 +73,11 @@ export async function POST(request: NextRequest) {
         )
       }
     }
+    
+    // توليد رقم الحساب تلقائياً إذا لم يُرسل (اعتماداً على كود الحساب الرئيسي)
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.account(parentAccount?.code)
     
     // إنشاء الحساب
     const account = await prisma.account.create({
