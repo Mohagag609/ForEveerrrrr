@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Plus, Search, Home, MapPin, Layers, DollarSign } from "lucide-react"
+import { Plus, Search, Home, MapPin, Layers, DollarSign, Edit, Trash2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { formatCurrency } from "@/lib/utils"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
@@ -48,6 +48,7 @@ export default function UnitsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [error, setError] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     code: '',
     projectId: '',
@@ -97,8 +98,10 @@ export default function UnitsPage() {
     setError('')
     
     try {
-      const response = await fetch('/api/units', {
-        method: 'POST',
+      const method = editingId ? 'PUT' : 'POST'
+      const url = editingId ? `/api/units/${editingId}` : '/api/units'
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -121,6 +124,7 @@ export default function UnitsPage() {
           status: 'available',
           notes: ''
         })
+        setEditingId(null)
         setShowForm(false)
       } else {
         setError(getErrorMessage(result))
@@ -128,6 +132,33 @@ export default function UnitsPage() {
     } catch (error) {
       console.error('Error creating unit:', error)
       setError('حدث خطأ في الاتصال بالخادم')
+    }
+  }
+
+  const handleEdit = (unit: Unit) => {
+    setEditingId(unit.id)
+    setShowForm(true)
+    setFormData({
+      code: unit.code,
+      projectId: unit.projectId,
+      name: unit.name || '',
+      type: unit.type,
+      floor: unit.floor ? String(unit.floor) : '',
+      building: unit.building || '',
+      area: String(unit.area),
+      price: String(unit.price),
+      status: unit.status,
+      notes: unit.notes || ''
+    })
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذه الوحدة؟')) return
+    try {
+      const response = await fetch(`/api/units/${id}`, { method: 'DELETE' })
+      if (response.ok) await fetchUnits()
+    } catch (error) {
+      console.error('Error deleting unit:', error)
     }
   }
 
@@ -179,7 +210,7 @@ export default function UnitsPage() {
           <h1 className="text-3xl font-bold">الوحدات العقارية</h1>
           <p className="text-muted-foreground">إدارة الوحدات والشقق</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => { setEditingId(null); setShowForm(true) }}>
           <Plus className="ml-2 h-4 w-4" />
           وحدة جديدة
         </Button>
@@ -417,9 +448,17 @@ export default function UnitsPage() {
                       </CardTitle>
                       <CardDescription>{unit.project.name}</CardDescription>
                     </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(unit.status)}`}>
-                      {getStatusText(unit.status)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(unit.status)}`}>
+                        {getStatusText(unit.status)}
+                      </span>
+                      <Button variant="outline" className="h-9 px-4 rounded-xl" onClick={() => handleEdit(unit)}>
+                        <Edit className="ml-2 h-4 w-4" /> تعديل
+                      </Button>
+                      <Button variant="destructive" className="h-9 px-4 rounded-xl" onClick={() => handleDelete(unit.id)}>
+                        <Trash2 className="ml-2 h-4 w-4" /> حذف
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

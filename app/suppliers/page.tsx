@@ -38,6 +38,7 @@ export default function SuppliersPage() {
     address: '',
     note: ''
   })
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchSuppliers()
@@ -62,8 +63,10 @@ export default function SuppliersPage() {
     setError('')
     
     try {
-      const response = await fetch('/api/suppliers', {
-        method: 'POST',
+      const method = editingId ? 'PUT' : 'POST'
+      const url = editingId ? `/api/suppliers/${editingId}` : '/api/suppliers'
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -75,6 +78,7 @@ export default function SuppliersPage() {
       if (response.ok) {
         await fetchSuppliers()
         setFormData({ code: '', name: '', phone: '', email: '', address: '', note: '' })
+        setEditingId(null)
         setShowForm(false)
       } else {
         setError(getErrorMessage(result))
@@ -90,6 +94,31 @@ export default function SuppliersPage() {
     supplier.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     supplier.phone?.includes(searchTerm)
   )
+
+  const handleEdit = (supplier: Supplier) => {
+    setShowForm(true)
+    setEditingId(supplier.id)
+    setFormData({
+      code: supplier.code,
+      name: supplier.name,
+      phone: supplier.phone || '',
+      email: supplier.email || '',
+      address: supplier.address || '',
+      note: supplier.note || ''
+    })
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا المورد؟')) return
+    try {
+      const response = await fetch(`/api/suppliers/${id}`, { method: 'DELETE' })
+      const result = await parseApiResponse(response)
+      if (!response.ok) throw new Error(result?.error || 'Delete failed')
+      await fetchSuppliers()
+    } catch (error) {
+      console.error('Error deleting supplier:', error)
+    }
+  }
 
   if (loading) {
     return (
@@ -109,7 +138,7 @@ export default function SuppliersPage() {
           <h1 className="text-3xl font-bold">الموردين</h1>
           <p className="text-muted-foreground">إدارة بيانات الموردين</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => { setShowForm(true); setEditingId(null); }}>
           <Plus className="ml-2 h-4 w-4" />
           مورد جديد
         </Button>
@@ -140,7 +169,7 @@ export default function SuppliersPage() {
           >
             <Card>
               <CardHeader>
-                <CardTitle>إضافة مورد جديد</CardTitle>
+                <CardTitle>{editingId ? 'تعديل بيانات المورد' : 'إضافة مورد جديد'}</CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"
@@ -148,6 +177,7 @@ export default function SuppliersPage() {
                   onClick={() => {
                     setShowForm(false)
                     setError('')
+                    setEditingId(null)
                   }}
                 >
                   <X className="h-4 w-4" />
@@ -169,6 +199,7 @@ export default function SuppliersPage() {
                         value={formData.code}
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                         required
+                        disabled={!!editingId}
                       />
                     </div>
                     
@@ -222,8 +253,8 @@ export default function SuppliersPage() {
                   </div>
                   
                   <div className="flex gap-3">
-                    <Button type="submit" className="flex-1">
-                      حفظ
+                    <Button type="submit" className="flex-1 h-11 rounded-xl">
+                      {editingId ? 'تحديث' : 'حفظ'}
                     </Button>
                     <Button
                       type="button"
@@ -231,6 +262,7 @@ export default function SuppliersPage() {
                       onClick={() => {
                         setShowForm(false)
                         setError('')
+                        setEditingId(null)
                       }}
                     >
                       إلغاء
@@ -267,12 +299,22 @@ export default function SuppliersPage() {
                       <CardTitle className="text-lg">{supplier.name}</CardTitle>
                       <CardDescription>كود: {supplier.code}</CardDescription>
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Edit className="h-4 w-4" />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        className="h-9 px-4 rounded-xl border-primary/30"
+                        onClick={() => handleEdit(supplier)}
+                      >
+                        <Edit className="ml-2 h-4 w-4" />
+                        تعديل
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
-                        <Trash2 className="h-4 w-4" />
+                      <Button
+                        variant="destructive"
+                        className="h-9 px-4 rounded-xl"
+                        onClick={() => handleDelete(supplier.id)}
+                      >
+                        <Trash2 className="ml-2 h-4 w-4" />
+                        حذف
                       </Button>
                     </div>
                   </div>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus, Search, Warehouse, X } from "lucide-react"
+import { Plus, Search, Warehouse, X, Edit, Trash2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
 
@@ -33,6 +33,7 @@ export default function WarehousesPage() {
     name: '',
     location: ''
   })
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchWarehouses()
@@ -57,8 +58,10 @@ export default function WarehousesPage() {
     setError('')
     
     try {
-      const response = await fetch('/api/warehouses', {
-        method: 'POST',
+      const method = editingId ? 'PUT' : 'POST'
+      const url = editingId ? `/api/warehouses/${editingId}` : '/api/warehouses'
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -70,6 +73,7 @@ export default function WarehousesPage() {
       if (response.ok) {
         await fetchWarehouses()
         setFormData({ code: '', name: '', location: '' })
+        setEditingId(null)
         setShowForm(false)
       } else {
         setError(getErrorMessage(result))
@@ -77,6 +81,22 @@ export default function WarehousesPage() {
     } catch (error) {
       console.error('Error creating warehouse:', error)
       setError('حدث خطأ في الاتصال بالخادم')
+    }
+  }
+
+  const handleEdit = (warehouse: Warehouse) => {
+    setEditingId(warehouse.id)
+    setShowForm(true)
+    setFormData({ code: warehouse.code, name: warehouse.name, location: warehouse.location || '' })
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('هل أنت متأكد من حذف هذا المخزن؟')) return
+    try {
+      const response = await fetch(`/api/warehouses/${id}`, { method: 'DELETE' })
+      if (response.ok) await fetchWarehouses()
+    } catch (error) {
+      console.error('Error deleting warehouse:', error)
     }
   }
 
@@ -104,7 +124,7 @@ export default function WarehousesPage() {
           <h1 className="text-3xl font-bold">المخازن</h1>
           <p className="text-muted-foreground">إدارة المخازن ومواقع التخزين</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button onClick={() => { setEditingId(null); setShowForm(true) }}>
           <Plus className="ml-2 h-4 w-4" />
           مخزن جديد
         </Button>
@@ -125,7 +145,7 @@ export default function WarehousesPage() {
         </CardContent>
       </Card>
 
-      {/* Add Form */}
+      {/* Add/Edit Form */}
       {showForm && (
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -134,13 +154,14 @@ export default function WarehousesPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>إضافة مخزن جديد</CardTitle>
+                <CardTitle>{editingId ? 'تعديل بيانات المخزن' : 'إضافة مخزن جديد'}</CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => {
                     setShowForm(false)
                     setError('')
+                    setEditingId(null)
                   }}
                 >
                   <X className="h-4 w-4" />
@@ -164,6 +185,7 @@ export default function WarehousesPage() {
                       value={formData.code}
                       onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                       required
+                      disabled={!!editingId}
                     />
                   </div>
                   
@@ -190,13 +212,14 @@ export default function WarehousesPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  <Button type="submit">حفظ المخزن</Button>
+                  <Button type="submit" className="h-11 rounded-xl">حفظ المخزن</Button>
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
                       setShowForm(false)
                       setError('')
+                      setEditingId(null)
                     }}
                   >
                     إلغاء
@@ -229,17 +252,25 @@ export default function WarehousesPage() {
                       <p className="text-sm text-muted-foreground">كود: {warehouse.code}</p>
                     </div>
                   </div>
-                  <div className={`rounded-full px-2 py-1 text-xs ${
-                    warehouse.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                  }`}>
-                    {warehouse.isActive ? 'نشط' : 'غير نشط'}
+                  <div className="flex items-center gap-2">
+                    <div className={`rounded-full px-2 py-1 text-xs ${
+                      warehouse.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                    }`}>
+                      {warehouse.isActive ? 'نشط' : 'غير نشط'}
+                    </div>
+                    <Button variant="outline" className="h-9 px-4 rounded-xl" onClick={() => handleEdit(warehouse)}>
+                      <Edit className="ml-2 h-4 w-4" /> تعديل
+                    </Button>
+                    <Button variant="destructive" className="h-9 px-4 rounded-xl" onClick={() => handleDelete(warehouse.id)}>
+                      <Trash2 className="ml-2 h-4 w-4" /> حذف
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   {warehouse.location && (
-                    <div className="flex items-center text-sm">
+                    <div className="فع items-center text-sm">
                       <span className="font-medium ml-2">الموقع:</span>
                       <span className="text-muted-foreground">{warehouse.location}</span>
                     </div>
