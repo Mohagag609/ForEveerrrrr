@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo, useCallback } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import {
   Building2,
   Users,
@@ -28,9 +29,18 @@ import {
   ChevronRight,
   ChevronLeft,
   Menu,
-  LayoutDashboard
+  LayoutDashboard,
+  Search,
+  Bell,
+  Zap,
+  Target,
+  BarChart3,
+  Calendar,
+  MapPin,
+  CreditCard,
+  PieChart,
+  Activity
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 interface MenuItem {
   id: string
@@ -39,6 +49,7 @@ interface MenuItem {
   icon: React.ElementType
   badge?: string
   children?: MenuItem[]
+  priority?: 'high' | 'medium' | 'low'
 }
 
 const menuItems: MenuItem[] = [
@@ -47,189 +58,183 @@ const menuItems: MenuItem[] = [
     title: "الرئيسية",
     href: "/",
     icon: Home,
+    priority: 'high'
   },
   {
     id: "dashboard",
     title: "لوحة التحكم",
     href: "/dashboard",
     icon: LayoutDashboard,
-    badge: "جديد"
+    badge: "جديد",
+    priority: 'high'
   },
   {
-    id: "clients-suppliers",
-    title: "العملاء والموردين",
-    icon: Users,
+    id: "quick-actions",
+    title: "إجراءات سريعة",
+    icon: Zap,
+    priority: 'high',
     children: [
-      { id: "clients", title: "العملاء", href: "/clients", icon: Users },
-      { id: "suppliers", title: "الموردين", href: "/suppliers", icon: Briefcase },
-      { id: "partners", title: "الشركاء", href: "/partners", icon: UserCheck },
-      { id: "partners-settlements", title: "مخالصات الشركاء", href: "/partners/settlements", icon: Receipt },
+      { id: "new-contract", title: "عقد جديد", href: "/contracts/new", icon: FileText, priority: 'high' },
+      { id: "new-client", title: "عميل جديد", href: "/clients/new", icon: Users, priority: 'high' },
+      { id: "new-payment", title: "دفعة جديدة", href: "/payments/new", icon: DollarSign, priority: 'high' },
+      { id: "new-invoice", title: "فاتورة جديدة", href: "/invoices/new", icon: Receipt, priority: 'high' },
     ]
   },
   {
     id: "real-estate",
     title: "العقارات",
     icon: Building2,
+    priority: 'high',
     children: [
-      { id: "projects", title: "المشاريع", href: "/projects", icon: Building2 },
-      { id: "units", title: "الوحدات", href: "/units", icon: Home },
-      { id: "contracts", title: "العقود", href: "/contracts", icon: FileText },
-      { id: "installments", title: "الأقساط", href: "/installments", icon: Calculator },
-      { id: "invoices", title: "الفواتير", href: "/invoices", icon: FileText },
-      { id: "payments", title: "المدفوعات", href: "/payments", icon: DollarSign },
+      { id: "projects", title: "المشاريع", href: "/projects", icon: Building2, priority: 'high' },
+      { id: "units", title: "الوحدات", href: "/units", icon: Home, priority: 'high' },
+      { id: "contracts", title: "العقود", href: "/contracts", icon: FileText, priority: 'high' },
+      { id: "installments", title: "الأقساط", href: "/installments", icon: Calculator, priority: 'high' },
+      { id: "invoices", title: "الفواتير", href: "/invoices", icon: FileText, priority: 'medium' },
+      { id: "payments", title: "المدفوعات", href: "/payments", icon: DollarSign, priority: 'medium' },
+    ]
+  },
+  {
+    id: "clients-suppliers",
+    title: "العملاء والموردين",
+    icon: Users,
+    priority: 'high',
+    children: [
+      { id: "clients", title: "العملاء", href: "/clients", icon: Users, priority: 'high' },
+      { id: "suppliers", title: "الموردين", href: "/suppliers", icon: Briefcase, priority: 'medium' },
+      { id: "partners", title: "الشركاء", href: "/partners", icon: UserCheck, priority: 'medium' },
+      { id: "partners-settlements", title: "مخالصات الشركاء", href: "/partners/settlements", icon: Receipt, priority: 'low' },
     ]
   },
   {
     id: "accounting",
     title: "المحاسبة",
     icon: Calculator,
+    priority: 'medium',
     children: [
-      { id: "accounts", title: "دليل الحسابات", href: "/accounting/accounts", icon: Calculator },
-      { id: "journal-entries", title: "القيود المحاسبية", href: "/accounting/journal-entries", icon: FileText },
-      { id: "cashboxes", title: "الصناديق", href: "/accounting/cashboxes", icon: Database },
-      { id: "vouchers", title: "سندات القبض والصرف", href: "/accounting/vouchers", icon: Receipt },
-      { id: "transfers", title: "التحويلات", href: "/accounting/transfers", icon: DollarSign },
-      { id: "revenues", title: "الإيرادات", href: "/revenues", icon: TrendingUp },
-      { id: "expenses", title: "المصروفات", href: "/expenses", icon: Receipt },
+      { id: "accounts", title: "دليل الحسابات", href: "/accounting/accounts", icon: Calculator, priority: 'medium' },
+      { id: "journal-entries", title: "القيود المحاسبية", href: "/accounting/journal-entries", icon: FileText, priority: 'medium' },
+      { id: "cashboxes", title: "الصناديق", href: "/accounting/cashboxes", icon: Database, priority: 'medium' },
+      { id: "vouchers", title: "سندات القبض والصرف", href: "/accounting/vouchers", icon: Receipt, priority: 'low' },
+      { id: "transfers", title: "التحويلات", href: "/accounting/transfers", icon: DollarSign, priority: 'low' },
+      { id: "revenues", title: "الإيرادات", href: "/revenues", icon: TrendingUp, priority: 'medium' },
+      { id: "expenses", title: "المصروفات", href: "/expenses", icon: Receipt, priority: 'medium' },
     ]
   },
   {
     id: "hr",
     title: "الموارد البشرية",
     icon: UserCheck,
+    priority: 'medium',
     children: [
-      { id: "employees", title: "الموظفين", href: "/employees", icon: Users },
-      { id: "payrolls", title: "المرتبات", href: "/payrolls", icon: DollarSign },
+      { id: "employees", title: "الموظفين", href: "/employees", icon: Users, priority: 'medium' },
+      { id: "payrolls", title: "الرواتب", href: "/payrolls", icon: DollarSign, priority: 'medium' },
     ]
   },
   {
-    id: "warehouses",
-    title: "المخازن",
-    icon: Warehouse,
+    id: "inventory",
+    title: "المخزون",
+    icon: Package,
+    priority: 'low',
     children: [
-      { id: "warehouses-list", title: "المخازن", href: "/warehouses", icon: Warehouse },
-      { id: "materials", title: "المواد", href: "/materials", icon: Package },
-      { id: "material-moves", title: "حركات المواد", href: "/material-moves", icon: TrendingUp },
+      { id: "materials", title: "المواد", href: "/materials", icon: Package, priority: 'low' },
+      { id: "warehouses", title: "المستودعات", href: "/warehouses", icon: Warehouse, priority: 'low' },
+      { id: "material-moves", title: "حركة المواد", href: "/material-moves", icon: Activity, priority: 'low' },
     ]
   },
   {
     id: "reports",
     title: "التقارير",
-    href: "/reports",
     icon: FileBarChart,
+    priority: 'low',
+    children: [
+      { id: "financial-reports", title: "التقارير المالية", href: "/reports", icon: BarChart3, priority: 'low' },
+      { id: "installment-reports", title: "تقارير الأقساط", href: "/reports/installments", icon: CreditCard, priority: 'low' },
+      { id: "bank-reports", title: "تقارير البنوك", href: "/reports/bank", icon: Database, priority: 'low' },
+    ]
   },
   {
     id: "settings",
     title: "الإعدادات",
     href: "/settings",
     icon: Settings,
-  }
+    priority: 'low'
+  },
 ]
 
 export function AppSidebar() {
-  const [collapsed, setCollapsed] = useState(false)
-  const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const [isCollapsed, setIsCollapsed] = useState(false)
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
   const pathname = usePathname()
 
-  const toggleExpanded = (id: string) => {
-    setExpandedItems(prev =>
-      prev.includes(id) 
-        ? prev.filter(item => item !== id)
-        : [...prev, id]
-    )
-  }
+  const toggleCollapse = useCallback(() => {
+    setIsCollapsed(!isCollapsed)
+  }, [isCollapsed])
 
-  const isActive = (href?: string) => {
-    if (!href) return false
-    return pathname === href || pathname.startsWith(href + "/")
-  }
+  const toggleMobile = useCallback(() => {
+    setIsMobileOpen(!isMobileOpen)
+  }, [isMobileOpen])
 
-  const renderMenuItem = (item: MenuItem, level = 0) => {
+  const isActive = useCallback((href: string) => {
+    return pathname === href || pathname.startsWith(href + '/')
+  }, [pathname])
+
+  const renderMenuItem = useCallback((item: MenuItem, level: number = 0) => {
+    const isItemActive = item.href ? isActive(item.href) : false
     const hasChildren = item.children && item.children.length > 0
-    const isExpanded = expandedItems.includes(item.id)
-    const active = isActive(item.href)
+    const [isExpanded, setIsExpanded] = useState(level === 0 || isItemActive)
 
-    const itemContent = (
-      <div
-        className={cn(
-          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
-          "hover:bg-accent hover:text-accent-foreground",
-          active && "bg-gradient-to-r from-indigo-500/10 to-emerald-500/10 text-indigo-700 dark:text-indigo-300",
-          level > 0 && "ml-6"
-        )}
-      >
-        <item.icon className={cn(
-          "h-5 w-5 shrink-0",
-          active && "text-indigo-600 dark:text-indigo-400"
-        )} />
-        
-        <AnimatePresence>
-          {!collapsed && (
-            <motion.span
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: "auto" }}
-              exit={{ opacity: 0, width: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap"
-            >
-              {item.title}
-            </motion.span>
-          )}
-        </AnimatePresence>
-
-        {!collapsed && item.badge && (
-          <Badge variant="secondary" className="ml-auto">
-            {item.badge}
-          </Badge>
-        )}
-
-        {!collapsed && hasChildren && (
-          <ChevronRight className={cn(
-            "ml-auto h-4 w-4 transition-transform",
-            isExpanded && "rotate-90"
-          )} />
-        )}
-      </div>
-    )
-
-    if (collapsed && !hasChildren) {
-      return (
-        <TooltipProvider key={item.id}>
-          <Tooltip delayDuration={0}>
-            <TooltipTrigger asChild>
-              {item.href ? (
-                <Link href={item.href}>{itemContent}</Link>
-              ) : (
-                <div>{itemContent}</div>
-              )}
-            </TooltipTrigger>
-            <TooltipContent side="left" className="flex items-center gap-2">
-              {item.title}
-              {item.badge && (
-                <Badge variant="secondary" className="ml-1">
-                  {item.badge}
-                </Badge>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )
+    const handleToggle = () => {
+      if (hasChildren) {
+        setIsExpanded(!isExpanded)
+      }
     }
 
     return (
-      <div key={item.id}>
+      <div key={item.id} className="space-y-1">
         {item.href ? (
-          <Link href={item.href}>{itemContent}</Link>
+          <Link href={item.href}>
+            <Button
+              variant={isItemActive ? "default" : "ghost"}
+              className={cn(
+                "w-full justify-start h-10 px-3",
+                level > 0 && "mr-4",
+                isItemActive && "bg-primary/10 text-primary border-r-2 border-primary"
+              )}
+            >
+              <item.icon className="h-4 w-4 ml-2" />
+              {!isCollapsed && (
+                <span className="flex-1 text-right">{item.title}</span>
+              )}
+              {item.badge && !isCollapsed && (
+                <Badge variant="secondary" className="mr-auto text-xs">
+                  {item.badge}
+                </Badge>
+              )}
+            </Button>
+          </Link>
         ) : (
-          <button
-            onClick={() => hasChildren && toggleExpanded(item.id)}
-            className="w-full"
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-10 px-3"
+            onClick={handleToggle}
           >
-            {itemContent}
-          </button>
+            <item.icon className="h-4 w-4 ml-2" />
+            {!isCollapsed && (
+              <>
+                <span className="flex-1 text-right">{item.title}</span>
+                <ChevronRight 
+                  className={cn(
+                    "h-4 w-4 transition-transform",
+                    isExpanded && "rotate-90"
+                  )} 
+                />
+              </>
+            )}
+          </Button>
         )}
 
-        {hasChildren && !collapsed && (
+        {hasChildren && (
           <AnimatePresence>
             {isExpanded && (
               <motion.div
@@ -239,8 +244,8 @@ export function AppSidebar() {
                 transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
-                <div className="mt-1 space-y-1">
-                  {item.children?.map(child => renderMenuItem(child, level + 1))}
+                <div className="space-y-1 mt-1">
+                  {item.children!.map((child) => renderMenuItem(child, level + 1))}
                 </div>
               </motion.div>
             )}
@@ -248,67 +253,90 @@ export function AppSidebar() {
         )}
       </div>
     )
-  }
+  }, [isCollapsed, isActive])
 
-  return (
-    <motion.aside
-      animate={{ width: collapsed ? 80 : 280 }}
-      transition={{ duration: 0.3, ease: "easeInOut" as const }}
-              className={cn(
-          "relative flex h-screen flex-col border-l bg-background/95 backdrop-blur-sm",
-          "shadow-[inset_-1px_0_0_rgba(0,0,0,0.05)]"
-        )}
-    >
+  const sidebarContent = (
+    <div className={cn(
+      "flex flex-col h-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-r border-border/40",
+      isCollapsed ? "w-16" : "w-64"
+    )}>
       {/* Header */}
-      <div className="flex h-16 items-center justify-between border-b px-4">
-        <AnimatePresence>
-          {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-2"
-            >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-emerald-500">
-                <Building2 className="h-5 w-5 text-white" />
-              </div>
-              <span className="font-semibold">ERP System</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
+      <div className="flex items-center justify-between p-4 border-b border-border/40">
+        {!isCollapsed && (
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-lg flex items-center justify-center">
+              <Building2 className="h-5 w-5 text-white" />
+            </div>
+            <span className="font-bold text-lg">ERP</span>
+          </div>
+        )}
         <Button
           variant="ghost"
-          size="icon"
-          onClick={() => setCollapsed(!collapsed)}
-          className="h-8 w-8"
+          size="sm"
+          onClick={toggleCollapse}
+          className="h-8 w-8 p-0"
         >
-          {collapsed ? <ChevronLeft className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </Button>
       </div>
 
       {/* Navigation */}
       <ScrollArea className="flex-1 px-3 py-4">
-        <nav className="space-y-1">
-          {menuItems.map(item => renderMenuItem(item))}
-        </nav>
+        <div className="space-y-2">
+          {menuItems.map((item) => renderMenuItem(item))}
+        </div>
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t p-4">
-        <div className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2",
-          "bg-gradient-to-r from-indigo-500/5 to-emerald-500/5"
-        )}>
-          <Shield className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-          {!collapsed && (
-            <div className="flex-1">
-              <p className="text-xs font-medium">الإصدار</p>
-              <p className="text-xs text-muted-foreground">1.0.0</p>
-            </div>
-          )}
+      <div className="p-4 border-t border-border/40">
+        <div className="flex items-center justify-center space-x-2 text-xs text-muted-foreground">
+          <Target className="h-3 w-3" />
+          {!isCollapsed && <span>نظام متطور</span>}
         </div>
       </div>
-    </motion.aside>
+    </div>
+  )
+
+  return (
+    <>
+      {/* Mobile Toggle */}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="lg:hidden fixed top-4 right-4 z-50"
+        onClick={toggleMobile}
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile Sidebar */}
+      <AnimatePresence>
+        {isMobileOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={toggleMobile}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 20, stiffness: 300 }}
+              className="fixed right-0 top-0 h-full z-50 lg:hidden"
+            >
+              {sidebarContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
