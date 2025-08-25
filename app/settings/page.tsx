@@ -46,9 +46,10 @@ export default function SettingsPage() {
   const handleBackup = async () => {
     setLoading(true)
     try {
-      // Simulate backup process
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      showSuccess('تم إنشاء نسخة احتياطية بنجاح')
+      const response = await fetch('/api/backups/run', { method: 'POST' })
+      const result = await response.json()
+      if (!response.ok || !result.success) throw new Error(result.error || 'Backup failed')
+      showSuccess(result.message || 'تم إنشاء نسخة احتياطية بنجاح')
     } catch (error) {
       showError('فشل في إنشاء نسخة احتياطية')
     } finally {
@@ -57,34 +58,29 @@ export default function SettingsPage() {
   }
 
   const handleRestore = async () => {
-    if (confirm('هل أنت متأكد من استعادة النسخة الاحتياطية؟ سيتم استبدال البيانات الحالية.')) {
-      setLoading(true)
-      try {
-        // Simulate restore process
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        showSuccess('تمت استعادة النسخة الاحتياطية بنجاح')
-      } catch (error) {
-        showError('فشل في استعادة النسخة الاحتياطية')
-      } finally {
-        setLoading(false)
-      }
+    if (!confirm('هل أنت متأكد من استعادة النسخة الاحتياطية؟ سيتم استبدال البيانات الحالية.')) return
+    setLoading(true)
+    try {
+      // Placeholder: no restore API implemented yet
+      showError('ميزة الاستعادة غير متاحة حالياً')
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleReset = async () => {
-    if (confirm('تحذير: سيتم حذف جميع البيانات نهائياً. هل أنت متأكد؟')) {
-      if (confirm('هذا الإجراء لا يمكن التراجع عنه. هل تريد المتابعة؟')) {
-        setLoading(true)
-        try {
-          // Simulate reset process
-          await new Promise(resolve => setTimeout(resolve, 3000))
-          showWarning('تم إعادة ضبط النظام بنجاح')
-        } catch (error) {
-          showError('فشل في إعادة ضبط النظام')
-        } finally {
-          setLoading(false)
-        }
-      }
+    if (!confirm('تحذير: سيتم حذف جميع البيانات نهائياً. هل أنت متأكد؟')) return
+    if (!confirm('هذا الإجراء لا يمكن التراجع عنه. هل تريد المتابعة؟')) return
+    setLoading(true)
+    try {
+      const response = await fetch('/api/admin/reset', { method: 'POST' })
+      const result = await response.json()
+      if (!response.ok || !result.success) throw new Error(result.error || 'Reset failed')
+      showWarning(result.message || 'تم إعادة ضبط النظام بنجاح')
+    } catch (error) {
+      showError('فشل في إعادة ضبط النظام')
+    } finally {
+      setLoading(false)
     }
   }
 
