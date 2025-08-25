@@ -355,12 +355,13 @@ export default function InvoicesPage() {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-2 gap-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="invoiceNo">رقم الفاتورة *</Label>
+                <Label htmlFor="invoiceNo">رقم الفاتورة</Label>
                 <Input
                   id="invoiceNo"
                   value={formData.invoiceNo}
                   onChange={(e) => setFormData({ ...formData, invoiceNo: e.target.value })}
-                  required
+                  placeholder="سيتم توليده تلقائياً"
+                  readOnly
                 />
               </div>
 

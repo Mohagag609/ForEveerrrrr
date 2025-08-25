@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 
 
 export async function GET() {
@@ -41,29 +42,22 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
     
     // Validate required fields
-    if (!data.invoiceNo || !data.date || !data.type || !data.totalAmount) {
+    if (!data.date || !data.type || !data.totalAmount) {
       return NextResponse.json(
         { error: 'جميع الحقول المطلوبة يجب ملؤها' },
         { status: 400 }
       )
     }
 
-    // Check if invoice number already exists
-    const existingInvoice = await prisma.invoice.findUnique({
-      where: { invoiceNo: data.invoiceNo }
-    })
-
-    if (existingInvoice) {
-      return NextResponse.json(
-        { error: 'رقم الفاتورة موجود مسبقاً' },
-        { status: 400 }
-      )
-    }
+    // Generate invoice number if missing
+    const invoiceNo = data.invoiceNo && data.invoiceNo.trim() !== ''
+      ? data.invoiceNo
+      : await codeGenerators.invoice()
 
     // Create invoice
     const invoice = await prisma.invoice.create({
       data: {
-        invoiceNo: data.invoiceNo,
+        invoiceNo,
         date: new Date(data.date),
         type: data.type,
         clientId: data.type === 'sales' && data.clientId ? data.clientId : undefined,

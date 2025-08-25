@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 
 
 export async function GET() {
@@ -32,29 +33,22 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
     
     // Validate required fields
-    if (!data.settlementNo || !data.date || !data.type || !data.lines || data.lines.length === 0) {
+    if (!data.date || !data.type || !data.lines || data.lines.length === 0) {
       return NextResponse.json(
         { error: 'جميع الحقول المطلوبة يجب ملؤها' },
         { status: 400 }
       )
     }
 
-    // Check if settlement number already exists
-    const existingSettlement = await prisma.settlement.findUnique({
-      where: { settlementNo: data.settlementNo }
-    })
-
-    if (existingSettlement) {
-      return NextResponse.json(
-        { error: 'رقم المخالصة موجود مسبقاً' },
-        { status: 400 }
-      )
-    }
+    // Generate settlement number if missing
+    const settlementNo = data.settlementNo && data.settlementNo.trim() !== ''
+      ? data.settlementNo
+      : await codeGenerators.settlement()
 
     // Create settlement with lines
     const settlement = await prisma.settlement.create({
       data: {
-        settlementNo: data.settlementNo,
+        settlementNo,
         date: new Date(data.date),
         type: data.type,
         status: data.status || 'draft',

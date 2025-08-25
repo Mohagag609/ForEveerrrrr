@@ -204,13 +204,14 @@ export default function PartnersSettlementsPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
               <div>
-                <label style={{ display: 'block', marginBottom: '5px' }}>رقم المخالصة *</label>
+                <label style={{ display: 'block', marginBottom: '5px' }}>رقم المخالصة</label>
                 <input
                   type="text"
                   value={formData.settlementNo}
                   onChange={(e) => setFormData({ ...formData, settlementNo: e.target.value })}
-                  required
-                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                  placeholder="سيتم توليده تلقائياً"
+                  readOnly
+                  style={{ width: '100%', padding: '8px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f8f9fa' }}
                 />
               </div>
 

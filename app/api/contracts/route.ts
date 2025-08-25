@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
+import { codeGenerators } from '@/lib/code-generator'
 import { addMonths } from 'date-fns'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createContractSchema = z.object({
-  contractNo: z.string().min(1, 'رقم العقد مطلوب'),
+  contractNo: z.string().optional(),
   date: z.string(),
   clientId: z.string().min(1, 'العميل مطلوب'),
   unitId: z.string().min(1, 'الوحدة مطلوبة'),
@@ -86,16 +87,15 @@ export async function POST(request: NextRequest) {
     // التحقق من البيانات
     const validatedData = createContractSchema.parse(body)
     
-    // التحقق من عدم تكرار رقم العقد
-    const existingContract = await prisma.contract.findUnique({
-      where: { contractNo: validatedData.contractNo }
-    })
+    // توليد رقم العقد تلقائياً إذا لم يُرسل
+    const contractNo = validatedData.contractNo && validatedData.contractNo.trim() !== ''
+      ? validatedData.contractNo
+      : await codeGenerators.contract()
     
+    // التحقق من عدم التكرار (للأمان)
+    const existingContract = await prisma.contract.findUnique({ where: { contractNo } })
     if (existingContract) {
-      return NextResponse.json(
-        { error: 'رقم العقد موجود بالفعل' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'رقم العقد موجود بالفعل' }, { status: 400 })
     }
     
     // التحقق من أن الوحدة متاحة
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
       // إنشاء العقد
       const contract = await tx.contract.create({
         data: {
-          contractNo: validatedData.contractNo,
+          contractNo,
           date: new Date(validatedData.date),
           clientId: validatedData.clientId,
           unitId: validatedData.unitId,

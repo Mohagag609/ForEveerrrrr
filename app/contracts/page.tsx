@@ -295,12 +295,13 @@ export default function ContractsPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="contractNo">رقم العقد *</Label>
+                      <Label htmlFor="contractNo">رقم العقد</Label>
                       <Input
                         id="contractNo"
                         value={formData.contractNo}
                         onChange={(e) => setFormData({ ...formData, contractNo: e.target.value })}
-                        required
+                        placeholder="سيتم توليده تلقائياً"
+                        readOnly
                       />
                     </div>
                     
