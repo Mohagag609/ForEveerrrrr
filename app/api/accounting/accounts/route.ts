@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createAccountSchema = z.object({
-  code: z.string().min(1, 'رقم الحساب مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم الحساب مطلوب'),
   type: z.enum(['asset', 'liability', 'equity', 'revenue', 'expense']),
   parentId: z.string().optional(),
@@ -49,17 +50,10 @@ export async function POST(request: NextRequest) {
     // التحقق من البيانات
     const validatedData = createAccountSchema.parse(body)
     
-    // التحقق من عدم تكرار رقم الحساب
-    const existingAccount = await prisma.account.findUnique({
-      where: { code: validatedData.code }
-    })
-    
-    if (existingAccount) {
-      return NextResponse.json(
-        { error: 'رقم الحساب موجود بالفعل' },
-        { status: 400 }
-      )
-    }
+    // توليد رقم الحساب تلقائياً إذا لم يُرسل
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.account(validatedData.parentId)
     
     // التحقق من الحساب الرئيسي إذا كان موجود
     if (validatedData.parentId) {
@@ -85,7 +79,7 @@ export async function POST(request: NextRequest) {
     
     // إنشاء الحساب
     const account = await prisma.account.create({
-      data: validatedData,
+      data: { ...validatedData, code },
       include: {
         parent: true,
         children: true,

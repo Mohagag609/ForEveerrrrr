@@ -277,13 +277,13 @@ export default function AccountsPage() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="code">رقم الحساب *</Label>
+                      <Label htmlFor="code">رقم الحساب</Label>
                       <Input
                         id="code"
                         value={formData.code}
                         onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                        placeholder="1110"
-                        required
+                        placeholder="سيتم توليده تلقائياً"
+                        readOnly
                       />
                     </div>
                     
