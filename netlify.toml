@@ -2,7 +2,7 @@
 
 [build]
   # Build the app inside the subfolder
-  base = "real-estate-erp"
+  base = ""
   command = "npm run build"
   publish = ".next"
 
