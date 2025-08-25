@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 import { z } from 'zod'
 
 export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createProjectSchema = z.object({
-  code: z.string().min(1, 'كود المشروع مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم المشروع مطلوب'),
   clientId: z.string().optional(),
   location: z.string().optional(),
@@ -59,9 +60,14 @@ export async function POST(request: Request) {
     // التحقق من البيانات
     const validatedData = createProjectSchema.parse(body)
     
+    // توليد الكود تلقائياً إذا لم يُرسل
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.project()
+    
     // التحقق من عدم تكرار الكود
     const existingProject = await prisma.project.findUnique({
-      where: { code: validatedData.code }
+      where: { code }
     })
     
     if (existingProject) {
@@ -73,7 +79,7 @@ export async function POST(request: Request) {
     
     // إنشاء المشروع
     const project = await prisma.project.create({
-      data: validatedData,
+      data: { ...validatedData, code },
       include: {
         client: true
       }

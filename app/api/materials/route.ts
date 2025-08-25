@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { codeGenerators } from '@/lib/code-generator'
 import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 
@@ -7,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createMaterialSchema = z.object({
-  code: z.string().min(1, 'كود المادة مطلوب'),
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم المادة مطلوب'),
   unit: z.string().min(1, 'وحدة القياس مطلوبة'),
   minQuantity: z.number().min(0).default(0),
@@ -48,9 +49,14 @@ export async function POST(request: NextRequest) {
     // التحقق من البيانات
     const validatedData = createMaterialSchema.parse(body)
     
+    // توليد الكود تلقائياً إذا لم يُرسل
+    const code = validatedData.code && validatedData.code.trim() !== ''
+      ? validatedData.code
+      : await codeGenerators.material()
+    
     // التحقق من عدم تكرار الكود
     const existingMaterial = await prisma.material.findUnique({
-      where: { code: validatedData.code }
+      where: { code }
     })
     
     if (existingMaterial) {
@@ -64,6 +70,7 @@ export async function POST(request: NextRequest) {
     const material = await prisma.material.create({
       data: {
         ...validatedData,
+        code,
         minQuantity: new Prisma.Decimal(validatedData.minQuantity),
         currentQty: new Prisma.Decimal(0),
         lastPrice: new Prisma.Decimal(0)

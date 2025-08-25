@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic'
 
 // Schema للتحقق من البيانات
 const createClientSchema = z.object({
+  code: z.string().optional(),
   name: z.string().min(1, 'اسم العميل مطلوب'),
   phone: z.string().optional(),
   email: z.string().email().optional().or(z.literal('')),
@@ -63,8 +64,8 @@ export async function POST(request: Request) {
     // التحقق من البيانات
     const validatedData = createClientSchema.parse(body)
     
-    // توليد كود تلقائي
-    const code = await codeGenerators.client()
+    // توليد كود تلقائي إذا لم يُرسل
+    const code = body.code && body.code.trim() !== '' ? body.code : await codeGenerators.client()
     
     // التحقق من البريد الإلكتروني إذا كان موجوداً
     if (validatedData.email) {
