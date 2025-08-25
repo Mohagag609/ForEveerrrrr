@@ -263,12 +263,12 @@ export default function ProjectsPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="clientId">العميل</Label>
-                      <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value })}>
+                      <Select value={formData.clientId} onValueChange={(value) => setFormData({ ...formData, clientId: value === 'none' ? '' : value })}>
                         <SelectTrigger>
                           <SelectValue placeholder="اختر العميل" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">بدون عميل</SelectItem>
+                          <SelectItem value="none">بدون عميل</SelectItem>
                           {clients.map((client) => (
                             <SelectItem key={client.id} value={client.id}>
                               {client.name} ({client.code})

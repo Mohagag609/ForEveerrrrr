@@ -315,12 +315,12 @@ export default function PayrollsPage() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="project">المشروع (اختياري)</Label>
-                    <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value })}>
+                    <Select value={formData.projectId} onValueChange={(value) => setFormData({ ...formData, projectId: value === 'none' ? '' : value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر المشروع" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">بدون مشروع</SelectItem>
+                        <SelectItem value="none">بدون مشروع</SelectItem>
                         {projects.map((project) => (
                           <SelectItem key={project.id} value={project.id}>
                             {project.name} ({project.code})

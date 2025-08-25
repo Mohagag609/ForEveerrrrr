@@ -313,12 +313,12 @@ export default function AccountsPage() {
                   
                   <div className="space-y-2">
                     <Label htmlFor="parentId">الحساب الرئيسي</Label>
-                    <Select value={formData.parentId} onValueChange={(value) => setFormData({ ...formData, parentId: value })}>
+                    <Select value={formData.parentId} onValueChange={(value) => setFormData({ ...formData, parentId: value === 'none' ? '' : value })}>
                       <SelectTrigger>
                         <SelectValue placeholder="اختر الحساب الرئيسي (اختياري)" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">بدون حساب رئيسي</SelectItem>
+                        <SelectItem value="none">بدون حساب رئيسي</SelectItem>
                         {accounts
                           .filter(acc => acc.type === formData.type)
                           .map(account => (
