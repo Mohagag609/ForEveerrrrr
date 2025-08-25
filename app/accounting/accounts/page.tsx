@@ -234,7 +234,7 @@ export default function AccountsPage() {
           <h1 className="text-3xl font-bold">دليل الحسابات</h1>
           <p className="text-muted-foreground">إدارة شجرة الحسابات المحاسبية</p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
+        <Button type="button" onClick={(e) => { e.preventDefault(); setShowForm(true) }}>
           <Plus className="ml-2 h-4 w-4" />
           حساب جديد
         </Button>

@@ -200,7 +200,7 @@ export default function ProjectsPage() {
           <h1 className="text-3xl font-bold">المشاريع</h1>
           <p className="text-muted-foreground">إدارة المشاريع العقارية</p>
         </div>
-        <Button onClick={() => { setEditingId(null); setShowForm(true) }}>
+        <Button type="button" onClick={(e) => { e.preventDefault(); setEditingId(null); setShowForm(true) }}>
           <Plus className="ml-2 h-4 w-4" />
           مشروع جديد
         </Button>
