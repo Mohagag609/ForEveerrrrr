@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   const startTime = Date.now()
@@ -13,16 +13,10 @@ export async function GET() {
     
     if (isDatabaseConfigured) {
       try {
-        // Try to connect to database
-        const prisma = new PrismaClient()
-        
         // Execute a simple query to test connection
         await prisma.$queryRaw`SELECT 1`
         
         databaseStatus = 'connected'
-        
-        // Disconnect after test
-        await prisma.$disconnect()
       } catch (error) {
         databaseStatus = 'error'
         databaseError = error instanceof Error ? error.message : 'Unknown error'

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
 
 export const dynamic = 'force-dynamic'
 
@@ -76,10 +76,10 @@ export async function POST(request: NextRequest) {
     const payroll = await prisma.payroll.create({
       data: {
         ...validatedData,
-        basicSalary: new Decimal(validatedData.basicSalary),
-        allowances: new Decimal(validatedData.allowances),
-        deductions: new Decimal(validatedData.deductions),
-        netSalary: new Decimal(netSalary),
+        basicSalary: new Prisma.Decimal(validatedData.basicSalary),
+        allowances: new Prisma.Decimal(validatedData.allowances),
+        deductions: new Prisma.Decimal(validatedData.deductions),
+        netSalary: new Prisma.Decimal(netSalary),
         status: 'draft'
       },
       include: {

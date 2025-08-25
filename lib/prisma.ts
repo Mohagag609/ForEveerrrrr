@@ -14,15 +14,4 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
 }
 
-// Connection pool configuration for better performance
-prisma.$connect().then(() => {
-  console.log('✅ Database connected with optimized pool')
-}).catch((error) => {
-  console.error('❌ Database connection failed:', error)
-  process.exit(1)
-})
-
-// Graceful shutdown
-process.on('beforeExit', async () => {
-  await prisma.$disconnect()
-})
+// In serverless runtimes, allow lazy connect and avoid process listeners.

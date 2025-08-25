@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
-import { Decimal } from '@prisma/client/runtime/library'
+import { Prisma } from '@prisma/client'
 
-const prisma = new PrismaClient()
 
 export const dynamic = 'force-dynamic'
 
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
     const expense = await prisma.expense.create({
       data: {
         ...validatedData,
-        amount: new Decimal(validatedData.amount)
+        amount: new Prisma.Decimal(validatedData.amount)
       },
       include: {
         supplier: true,
