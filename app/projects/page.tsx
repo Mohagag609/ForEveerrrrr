@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Search, Building2, Calendar, DollarSign, Edit, Trash2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { parseApiResponse, getErrorMessage, prepareFormData } from "@/lib/api-utils"
-import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatCurrency } from "@/lib/utils"
 
 interface Project {
   id: string
